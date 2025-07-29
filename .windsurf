@@ -1,0 +1,199 @@
+# Mod-Net Module Pallet Development Workflow
+
+## Overview
+This document outlines the development workflow and standards for the Mod-Net module pallet project. Following these practices ensures consistent, high-quality code and maintainable development processes.
+
+## Core Principles
+
+### 1. Critical Workflow Rules
+- **Never declare work "complete" or "resolved"** - only the user determines success
+- Use **"QA" as the accepting state** for completed work, not "RESOLVED" or "DONE"
+- **No half measures or placeholders**:
+  - No TODO comments
+  - No mock implementations
+  - No placeholder functions
+  - Implementation must be complete and production-ready
+  - All substrate types and traits must be fully implemented
+- **Thorough testing before QA**:
+  - Test all edge cases
+  - Verify complete pallet workflows
+  - Check error handling
+  - Ensure runtime performance meets requirements
+  - Verify weight calculations
+
+### 2. Code Quality Standards
+- Write clear, well-documented Rust code
+- Follow substrate pallet development best practices
+- Maintain comprehensive test coverage
+- Document all public interfaces
+- Review and optimize for performance
+
+### 3. Git Workflow
+When submitting changes, follow the Conventional Commits standard:
+
+```markdown
+**Commit Message Format**:
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer(s)]
+
+Types:
+- feat: A new feature
+- fix: A bug fix
+- docs: Documentation only changes
+- style: Changes that don't affect code meaning (formatting, etc)
+- refactor: Code change that neither fixes a bug nor adds a feature
+- test: Adding missing tests or correcting existing tests
+- chore: Changes to build process or auxiliary tools
+- perf: Performance improvements
+
+Scope: pallet name or module affected
+
+Examples:
+feat(storage): implement new storage map for module state
+fix(extrinsic): handle invalid signature error
+docs(events): update documentation for new events
+test(runtime): add integration tests for token transfer
+chore(build): update substrate dependencies
+```
+
+### 3. Issue and Branch Management
+
+**Issue Creation**:
+```markdown
+**Title**: Brief, descriptive title
+
+**Description**:
+- Purpose: Clear statement of the feature/fix needed
+- Technical Details: Implementation considerations
+- Acceptance Criteria: Clear completion criteria
+
+Example:
+Title: Implement Token Transfer Storage Map
+
+Description:
+- Purpose: Add storage map for tracking token transfers
+- Technical Details: Use double-map for from/to addresses
+- Acceptance Criteria:
+  - Storage map implemented with tests
+  - Documentation updated
+  - Benchmarks added
+```
+
+**Branch Management**:
+```bash
+# Create new branch for issue
+git checkout -b feature/token-transfer-map
+
+# Keep branch up to date
+git fetch origin
+git rebase origin/main
+
+# Push feature branch
+git push -u origin feature/token-transfer-map
+```
+
+**Branch Naming Convention**:
+- Features: `feature/descriptive-name`
+- Fixes: `fix/issue-description`
+- Documentation: `docs/what-changed`
+- Refactoring: `refactor/what-changed`
+
+### 4. Development Process
+
+**Development Stages**:
+1. **Design** - Plan module interface and implementation
+2. **Implementation** - Write code with tests
+3. **Testing** - Comprehensive testing
+4. **Documentation** - Update all relevant docs
+5. **Review** - Code review and updates
+6. **Integration** - Merge and verify
+
+## Quality Standards
+
+### Code Requirements
+- All public functions must be documented
+- Unit tests for all functionality
+- Integration tests for module interactions
+- Benchmarks for critical paths
+- Error handling for all edge cases
+- Clean, idiomatic Rust code
+
+### Testing Standards
+```rust
+// Example test structure
+#[test]
+fn test_module_functionality() {
+    ExtBuilder::default().build().execute_with(|| {
+        // Arrange
+        // Act
+        // Assert
+    });
+}
+```
+
+## Documentation
+
+### Module Documentation
+- Clear overview of module purpose
+- Detailed interface documentation
+- Usage examples
+- Configuration options
+- Storage items description
+- Events and errors documentation
+
+### Implementation Notes
+- Document complex algorithms
+- Explain critical design decisions
+- Note performance considerations
+- Document integration requirements
+
+## Quality Assurance
+
+### Pre-Merge Checklist
+- ✅ All tests pass
+- ✅ Documentation is updated
+- ✅ No clippy warnings
+- ✅ Follows rust formatting
+- ✅ Includes unit tests
+- ✅ Integration tests pass
+
+### Performance Considerations
+- Optimize storage access patterns
+- Minimize on-chain computation
+- Use appropriate types for storage
+- Consider gas costs
+- Benchmark critical operations
+
+## Commands Reference
+
+```bash
+# Run tests
+cargo test --release
+
+# Run specific test
+cargo test test_name --release
+
+# Check formatting
+cargo fmt --all -- --check
+
+# Run clippy
+cargo clippy -- -D warnings
+
+# Run benchmarks
+cargo test --features runtime-benchmarks
+```
+
+## Success Criteria
+
+A developer following this workflow will:
+- ✅ Write high-quality, well-tested code
+- ✅ Maintain clear documentation
+- ✅ Follow Git best practices
+- ✅ Submit well-structured PRs
+- ✅ Ensure proper testing coverage
+- ✅ Keep code maintainable and performant
+
+This workflow ensures consistent, professional development practices that maintain the quality and reliability of the module pallet.
