@@ -28,6 +28,15 @@ This document outlines the development workflow and standards for the Mod-Net mo
 - Document all public interfaces
 - Review and optimize for performance
 
+### 2.1 Package Management
+- Use UV for Python package management
+  - Faster than pip
+  - Better dependency resolution
+  - Built-in virtual environment management
+  - Reproducible builds with uv.lock file
+- Keep requirements.txt updated and pinned
+- Use pyproject.toml for project metadata and build settings
+
 ### 3. Git Workflow
 When submitting changes, follow the Conventional Commits standard:
 
@@ -170,20 +179,25 @@ fn test_module_functionality() {
 ## Commands Reference
 
 ```bash
-# Run tests
+# Rust Commands
 cargo test --release
-
-# Run specific test
 cargo test test_name --release
-
-# Check formatting
 cargo fmt --all -- --check
-
-# Run clippy
 cargo clippy -- -D warnings
-
-# Run benchmarks
 cargo test --features runtime-benchmarks
+
+# Python Commands
+uv venv  # Create virtual environment
+uv pip install -r requirements.txt  # Install dependencies
+uv pip compile requirements.in  # Generate requirements.txt
+uv pip install --upgrade-deps  # Upgrade all dependencies
+
+# Testing and Linting
+pytest tests/  # Run Python tests
+black .  # Format Python code
+isort .  # Sort imports
+ruff check .  # Lint Python code
+mypy .  # Type checking
 ```
 
 ## Success Criteria
