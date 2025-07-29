@@ -1,0 +1,52 @@
+"""IPFS handler for module registry metadata storage."""
+from typing import Any, Dict, Optional
+
+import ipfshttpclient
+
+
+class IPFSHandler:
+    """Handler for IPFS operations."""
+
+    def __init__(
+        self,
+        api_url: str = "http://localhost:5001",
+        gateway_url: str = "http://localhost:8080",
+    ) -> None:
+        """Initialize the IPFS handler.
+        
+        Args:
+            api_url: IPFS API URL
+            gateway_url: IPFS gateway URL
+        """
+        self.api_url = api_url
+        self.gateway_url = gateway_url
+        self.client: Optional[ipfshttpclient.Client] = None
+
+    def connect(self) -> None:
+        """Connect to IPFS node."""
+        if not self.client:
+            self.client = ipfshttpclient.connect(self.api_url)
+
+    def disconnect(self) -> None:
+        """Disconnect from IPFS node."""
+        if self.client:
+            self.client.close()
+            self.client = None
+
+    def add_json(self, data: Dict[str, Any]) -> str:
+        """Add JSON data to IPFS.
+        
+        Args:
+            data: JSON data to store
+            
+        Returns:
+            str: IPFS CID of stored data
+            
+        Raises:
+            ConnectionError: If not connected to IPFS
+        """
+        if not self.client:
+            raise ConnectionError("Not connected to IPFS")
+        
+        res = self.client.add_json(data)
+        return str(res)
