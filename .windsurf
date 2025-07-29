@@ -110,7 +110,37 @@ git push -u origin feature/token-transfer-map
 - Documentation: `docs/what-changed`
 - Refactoring: `refactor/what-changed`
 
-### 4. Development Process
+### 4. CI/CD Pipeline
+
+**Workflow Overview**:
+1. **Rust CI** - Validate Rust code quality and tests
+   - Cargo check and build
+   - Unit tests and coverage
+   - Clippy linting
+   - Documentation generation
+
+2. **Python CI** - Validate Python client code
+   - Black and isort formatting
+   - Ruff and mypy linting
+   - Unit tests with coverage
+   - UV package management
+
+3. **Integration Tests** - End-to-end validation
+   - IPFS service container
+   - Combined Rust/Python testing
+   - Submodule handling
+   - Environment validation
+
+**CI/CD Process**:
+1. **Automated Checks** - Triggered on push/PR
+2. **Manual Review** - Code review required
+3. **Integration** - Run full test suite
+4. **Documentation** - Update docs and specs
+5. **Deployment** - Merge and release
+
+See `docs/ci-cd.md` for detailed documentation.
+
+### 5. Development Process
 
 **Development Stages**:
 1. **Design** - Plan module interface and implementation

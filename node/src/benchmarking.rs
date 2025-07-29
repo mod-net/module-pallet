@@ -5,7 +5,6 @@
 use crate::service::FullClient;
 
 use runtime::{AccountId, Balance, BalancesCall, SystemCall};
-use sc_cli::Result;
 use sc_client_api::BlockBackend;
 use solochain_template_runtime as runtime;
 use sp_core::{Encode, Pair};
@@ -165,12 +164,13 @@ pub fn create_benchmark_extrinsic(
 /// Generates inherent data for the `benchmark overhead` command.
 ///
 /// Note: Should only be used for benchmarking.
-pub fn inherent_benchmark_data() -> Result<InherentData> {
+#[allow(clippy::result_large_err)]
+pub fn inherent_benchmark_data() -> sc_cli::Result<InherentData> {
     let mut inherent_data = InherentData::new();
     let d = Duration::from_millis(0);
     let timestamp = sp_timestamp::InherentDataProvider::new(d.into());
 
     futures::executor::block_on(timestamp.provide_inherent_data(&mut inherent_data))
-        .map_err(|e| format!("creating inherent data: {:?}", e))?;
+        .map_err(|e| sc_cli::Error::Application(Box::new(e)))?;
     Ok(inherent_data)
 }
