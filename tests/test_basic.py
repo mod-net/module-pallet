@@ -1,7 +1,6 @@
 """Basic test file to verify testing infrastructure."""
 
 
-
 def test_environment_setup() -> None:
     """Verify that the testing environment is properly set up."""
     assert True, "Basic test to verify pytest is working"

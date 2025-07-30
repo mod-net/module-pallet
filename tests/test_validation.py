@@ -1,6 +1,5 @@
 """Tests for validation utilities."""
 
-
 from mod_net_client.utils.validation import validate_module_metadata
 
 
