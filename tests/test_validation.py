@@ -1,7 +1,7 @@
 """Tests for validation utilities."""
 import pytest
 
-from mod_net_client.utils.validation import validate_metadata
+from mod_net_client.utils.validation import validate_module_metadata
 
 
 def test_validate_metadata_valid() -> None:
@@ -12,7 +12,7 @@ def test_validate_metadata_valid() -> None:
         "description": "Test module",
         "extra": "field",  # Extra fields are allowed
     }
-    assert validate_metadata(metadata) is True
+    assert validate_module_metadata(metadata) is True
 
 
 def test_validate_metadata_missing_fields() -> None:
@@ -22,7 +22,7 @@ def test_validate_metadata_missing_fields() -> None:
         "version": "1.0.0",
         # Missing description
     }
-    assert validate_metadata(metadata) is False
+    assert validate_module_metadata(metadata) is False
 
 
 def test_validate_metadata_empty() -> None:
