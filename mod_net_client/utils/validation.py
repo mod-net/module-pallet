@@ -1,9 +1,9 @@
 """Validation utilities for the module registry client."""
 
-from typing import Any, Dict
+from typing import Any
 
 
-def validate_module_metadata(metadata: Dict[str, Any]) -> bool:
+def validate_module_metadata(metadata: dict[str, Any]) -> bool:
     """Validate module metadata format.
 
     Args:

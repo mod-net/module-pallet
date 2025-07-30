@@ -1,6 +1,5 @@
 """Basic test file to verify testing infrastructure."""
 
-from typing import Any
 
 
 def test_environment_setup() -> None:

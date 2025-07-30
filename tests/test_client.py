@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from mod_net_client.core.client import ModNetClient
 
 

@@ -1,7 +1,6 @@
 """IPFS handler for module registry metadata storage."""
 
-from typing import Any, Dict, Optional
-
+from typing import Any
 import ipfshttpclient
 
 
@@ -21,7 +20,7 @@ class IPFSHandler:
         """
         self.api_url = api_url
         self.gateway_url = gateway_url
-        self.client: Optional[ipfshttpclient.Client] = None
+        self.client: ipfshttpclient.Client | None = None
 
     def connect(self) -> None:
         """Connect to IPFS node."""
@@ -34,7 +33,7 @@ class IPFSHandler:
             self.client.close()
             self.client = None
 
-    def add_json(self, data: Dict[str, Any]) -> str:
+    def add_json(self, data: dict[str, Any]) -> str:
         """Add JSON data to IPFS.
 
         Args:

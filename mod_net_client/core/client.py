@@ -1,6 +1,5 @@
 """Core client for interacting with the module registry."""
 
-from typing import Optional
 
 from substrate_interface import SubstrateInterface
 
@@ -12,8 +11,8 @@ class ModNetClient:
         self,
         substrate_url: str,
         *,
-        ipfs_api_url: Optional[str] = None,
-        ipfs_gateway_url: Optional[str] = None,
+        ipfs_api_url: str | None = None,
+        ipfs_gateway_url: str | None = None,
     ) -> None:
         """Initialize the ModNet client.
 

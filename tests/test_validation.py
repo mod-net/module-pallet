@@ -1,6 +1,5 @@
 """Tests for validation utilities."""
 
-import pytest
 
 from mod_net_client.utils.validation import validate_module_metadata
 
@@ -28,4 +27,4 @@ def test_validate_metadata_missing_fields() -> None:
 
 def test_validate_metadata_empty() -> None:
     """Test metadata validation with empty dict."""
-    assert validate_metadata({}) is False
+    assert validate_module_metadata({}) is False
