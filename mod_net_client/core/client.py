@@ -1,4 +1,5 @@
 """Core client for interacting with the module registry."""
+
 from typing import Optional
 
 from substrate_interface import SubstrateInterface
@@ -15,7 +16,7 @@ class ModNetClient:
         ipfs_gateway_url: Optional[str] = None,
     ) -> None:
         """Initialize the ModNet client.
-        
+
         Args:
             substrate_url: URL of the substrate node
             ipfs_api_url: Optional IPFS API URL (default: http://localhost:5001)
@@ -24,10 +25,10 @@ class ModNetClient:
         self.substrate = SubstrateInterface(url=substrate_url)
         self.ipfs_api_url = ipfs_api_url or "http://localhost:5001"
         self.ipfs_gateway_url = ipfs_gateway_url or "http://localhost:8080"
-        
+
     def health_check(self) -> bool:
         """Check if the client can connect to the substrate node.
-        
+
         Returns:
             bool: True if connection is healthy
         """

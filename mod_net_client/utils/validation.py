@@ -1,13 +1,14 @@
 """Validation utilities for the module registry client."""
+
 from typing import Any, Dict
 
 
 def validate_module_metadata(metadata: Dict[str, Any]) -> bool:
     """Validate module metadata format.
-    
+
     Args:
         metadata: Module metadata to validate
-        
+
     Returns:
         bool: True if metadata is valid
     """
@@ -17,15 +18,15 @@ def validate_module_metadata(metadata: Dict[str, Any]) -> bool:
 
 def validate_module_id(module_id: str) -> bool:
     """Validate module ID format.
-    
+
     Args:
         module_id: Module ID to validate
-        
+
     Returns:
         bool: True if module ID is valid
     """
     if not isinstance(module_id, str):
         return False
-    
+
     # Module ID should be non-empty and contain only alphanumeric chars, hyphens, and underscores
-    return bool(module_id and module_id.replace('-', '').replace('_', '').isalnum())
+    return bool(module_id and module_id.replace("-", "").replace("_", "").isalnum())

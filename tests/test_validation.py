@@ -1,4 +1,5 @@
 """Tests for validation utilities."""
+
 import pytest
 
 from mod_net_client.utils.validation import validate_module_metadata

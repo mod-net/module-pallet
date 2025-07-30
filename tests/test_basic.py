@@ -1,4 +1,5 @@
 """Basic test file to verify testing infrastructure."""
+
 from typing import Any
 
 
@@ -9,8 +10,9 @@ def test_environment_setup() -> None:
 
 def test_type_checking() -> None:
     """Verify that type checking is working."""
+
     def typed_function(param: str) -> str:
         return param.upper()
-    
+
     result: str = typed_function("test")
     assert result == "TEST"

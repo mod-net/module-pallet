@@ -1,4 +1,5 @@
 """Tests for the ModNet client."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
