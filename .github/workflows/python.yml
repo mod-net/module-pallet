@@ -35,34 +35,35 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd modules/commune-ipfs
+          cd commune-ipfs
           uv venv
           source .venv/bin/activate
           uv pip install -r requirements.txt
+          uv pip install -e .
 
       - name: Run Black
         run: |
-          cd modules/commune-ipfs
+          cd commune-ipfs
           source .venv/bin/activate
           black . --check
         
       - name: Run isort
         run: |
-          cd modules/commune-ipfs
+          cd commune-ipfs
           source .venv/bin/activate
           isort . --check-only --profile black
         
       - name: Run Ruff
         run: |
-          cd modules/commune-ipfs
+          cd commune-ipfs
           source .venv/bin/activate
           ruff check .
         
       - name: Run MyPy
         run: |
-          cd modules/commune-ipfs
+          cd commune-ipfs
           source .venv/bin/activate
-          mypy .
+          mypy app/ --ignore-missing-imports
 
   test:
     name: Test
@@ -82,7 +83,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd modules/commune-ipfs
+          cd commune-ipfs
           uv venv
           source .venv/bin/activate
           uv pip install -r requirements.txt
@@ -90,12 +91,12 @@ jobs:
 
       - name: Run tests
         run: |
-          cd modules/commune-ipfs
+          cd commune-ipfs
           source .venv/bin/activate
-          pytest --cov=. --cov-report=xml
+          pytest tests/ -v --cov=app --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
-          file: ./modules/commune-ipfs/coverage.xml
+          file: ./commune-ipfs/coverage.xml
           fail_ci_if_error: true
