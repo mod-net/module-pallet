@@ -1,7 +1,7 @@
 """IPFS handler for module registry metadata storage."""
 
-from typing import Any
 import ipfshttpclient
+from typing import Any
 
 
 class IPFSHandler:
