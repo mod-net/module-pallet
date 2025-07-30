@@ -6,6 +6,9 @@ requires-python = ">=3.11"
 authors = [
     {name = "Mod-Net Team"}
 ]
+dependencies = [
+    "pyyaml>=6.0.2",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
