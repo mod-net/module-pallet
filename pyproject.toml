@@ -74,6 +74,18 @@ skip_gitignore = true
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = [
+    "target",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "*.egg-info",
+    ".git",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -85,16 +97,7 @@ select = [
 ]
 ignore = [
     "E501",  # line too long
-]
-exclude = [
-    "target",
-    ".venv",
-    "venv",
-    "build",
-    "dist",
-    "*.egg-info",
-    ".git",
-    "__pycache__",
+    "C901",  # function too complex (we'll handle this separately)
 ]
 
 [tool.pylint.messages_control]
