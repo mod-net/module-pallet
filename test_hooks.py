@@ -22,7 +22,11 @@ class GitHubActionsValidator:
 
     def validate_workflow_syntax(self, workflow_file: Path) -> dict[str, Any]:
         """Validate YAML syntax of a workflow file."""
-        result: dict[str, Any] = {"file": str(workflow_file), "valid": False, "errors": []}
+        result: dict[str, Any] = {
+            "file": str(workflow_file),
+            "valid": False,
+            "errors": [],
+        }
         errors: list[str] = result["errors"]
 
         try:
@@ -81,7 +85,11 @@ class GitHubActionsValidator:
 
     def check_workflow_triggers(self, workflow_file: Path) -> dict[str, Any]:
         """Check if workflow triggers are properly configured."""
-        result: dict[str, Any] = {"file": str(workflow_file), "triggers": [], "warnings": []}
+        result: dict[str, Any] = {
+            "file": str(workflow_file),
+            "triggers": [],
+            "warnings": [],
+        }
         triggers_list: list[str] = result["triggers"]
         warnings: list[str] = result["warnings"]
 
@@ -111,15 +119,11 @@ class GitHubActionsValidator:
                     triggers_list.extend(list(triggers.keys()))
 
                 # Check for common trigger patterns
-                if (
-                    "push" in triggers_list
-                    and "pull_request" in triggers_list
-                ):
+                if "push" in triggers_list and "pull_request" in triggers_list:
                     # Good practice - covers both scenarios
                     pass
                 elif (
-                    "push" not in triggers_list
-                    and "pull_request" not in triggers_list
+                    "push" not in triggers_list and "pull_request" not in triggers_list
                 ):
                     warnings.append("No push or pull_request triggers found")
 
@@ -130,7 +134,11 @@ class GitHubActionsValidator:
 
     def validate_action_references(self, workflow_file: Path) -> dict[str, Any]:
         """Validate that referenced actions exist and use proper versions."""
-        result: dict[str, Any] = {"file": str(workflow_file), "actions": [], "warnings": []}
+        result: dict[str, Any] = {
+            "file": str(workflow_file),
+            "actions": [],
+            "warnings": [],
+        }
         actions: list[str] = result["actions"]
         warnings: list[str] = result["warnings"]
 
@@ -172,7 +180,9 @@ class GitHubActionsValidator:
 
                                             # Check for local actions
                                             if action_ref.startswith("./"):
-                                                local_action_path = self.repo_root / action_ref[2:]
+                                                local_action_path = (
+                                                    self.repo_root / action_ref[2:]
+                                                )
                                                 if not local_action_path.exists():
                                                     warnings.append(
                                                         f"Local action '{action_ref}' not found"
@@ -185,7 +195,10 @@ class GitHubActionsValidator:
 
     def validate_all_workflows(self) -> dict[str, Any]:
         """Validate all workflow files in the repository."""
-        results: dict[str, Any] = {"workflows": [], "summary": {"total": 0, "valid": 0, "invalid": 0}}
+        results: dict[str, Any] = {
+            "workflows": [],
+            "summary": {"total": 0, "valid": 0, "invalid": 0},
+        }
         workflows: list[dict[str, Any]] = results["workflows"]
 
         if not self.workflows_dir.exists():
@@ -202,7 +215,7 @@ class GitHubActionsValidator:
                     "syntax": syntax_result,
                     "triggers": trigger_result,
                     "actions": action_result,
-                    "overall_valid": syntax_result["valid"]
+                    "overall_valid": syntax_result["valid"],
                 }
 
                 workflows.append(combined_result)
@@ -215,23 +228,21 @@ class GitHubActionsValidator:
         return results
 
 
-def run_command(cmd: list[str], cwd: Path | None = None, timeout: int = 30) -> dict[str, Any]:
+def run_command(
+    cmd: list[str], cwd: Path | None = None, timeout: int = 30
+) -> dict[str, Any]:
     """Run a command and return the result."""
     result: dict[str, Any] = {
         "command": " ".join(cmd),
         "success": False,
         "stdout": "",
         "stderr": "",
-        "returncode": -1
+        "returncode": -1,
     }
 
     try:
         process = subprocess.run(
-            cmd,
-            cwd=cwd,
-            capture_output=True,
-            text=True,
-            timeout=timeout
+            cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout
         )
         result["success"] = process.returncode == 0
         result["stdout"] = process.stdout
@@ -255,7 +266,7 @@ def check_required_tools() -> dict[str, Any]:
         available = cmd_result["success"]
         results["tools"][tool] = {
             "available": available,
-            "path": cmd_result["stdout"].strip() if available else None
+            "path": cmd_result["stdout"].strip() if available else None,
         }
         if not available:
             results["all_available"] = False
