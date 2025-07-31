@@ -7,6 +7,11 @@ authors = [
     {name = "Mod-Net Team"}
 ]
 dependencies = [
+    "substrate-interface>=1.7.0",
+    "ipfshttpclient>=0.8.0a2",
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "pydantic>=2.4.0",
     "pyyaml>=6.0.2",
     "setuptools>=80.9.0",
 ]

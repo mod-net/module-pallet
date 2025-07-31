@@ -1,6 +1,6 @@
 """Core client for interacting with the module registry."""
 
-from substrate_interface import SubstrateInterface
+from substrateinterface import SubstrateInterface
 
 
 class ModNetClient:
