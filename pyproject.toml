@@ -64,8 +64,12 @@ skip_glob = [
     "venv/*",
     "build/*",
     "dist/*",
-    "*.egg-info/*"
+    "*.egg-info/*",
+    "**/site-packages/*",
+    "**/.venv/*",
+    "**/venv/*"
 ]
+skip_gitignore = true
 
 [tool.ruff]
 line-length = 88
