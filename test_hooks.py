@@ -4,13 +4,13 @@ Test hooks for GitHub Actions workflows.
 This script validates the GitHub Actions setup and can be used as a pre-commit hook.
 """
 
-import os
-import sys
 import json
+import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
-from typing import Dict, Any, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import yaml  # type: ignore[import-untyped]
 
