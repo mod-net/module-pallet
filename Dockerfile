@@ -3,7 +3,10 @@ FROM docker.io/paritytech/ci-unified:latest as builder
 WORKDIR /polkadot
 COPY . /polkadot
 
-RUN cargo fetch
+# Install newer WASM target and clean cache
+RUN rustup target add wasm32v1-none && \
+    cargo clean && \
+    cargo fetch
 RUN cargo build --locked --release
 
 FROM docker.io/parity/base-bin:latest
