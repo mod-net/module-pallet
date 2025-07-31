@@ -20,7 +20,7 @@ fi
 
 echo ""
 echo "🚀 Running comprehensive project validation..."
-echo "="*60
+echo "=================================================="
 
 # Run comprehensive validation by default
 uv run python test_hooks.py
