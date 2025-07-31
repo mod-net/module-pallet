@@ -34,6 +34,8 @@ def test_health_check_success(mock_substrate: MagicMock) -> None:
 @patch("substrate_interface.SubstrateInterface")
 def test_health_check_failure(mock_substrate: MagicMock) -> None:
     """Test failed health check."""
-    mock_substrate.return_value.get_chain_head.side_effect = Exception("Connection failed")
+    mock_substrate.return_value.get_chain_head.side_effect = Exception(
+        "Connection failed"
+    )
     client = ModNetClient("ws://localhost:9944")
     assert client.health_check() is False
