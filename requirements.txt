@@ -121,6 +121,7 @@ ruff==0.12.7
     # via -r requirements.in
 scalecodec==1.2.11
     # via substrate-interface
+setuptools==80.9.0
 six==1.17.0
     # via
     #   ecdsa
