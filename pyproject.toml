@@ -33,7 +33,7 @@ dev = [
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-include = '\.pyi?$'
+include = '(test_hooks\.py)$'
 exclude = '''
 (
   /(
@@ -48,6 +48,7 @@ exclude = '''
     | build
     | dist
     | target
+    | commune-ipfs
   )/
 )
 '''
