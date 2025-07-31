@@ -45,5 +45,5 @@ jobs:
         
       - name: Run integration tests
         run: |
-          cargo test --test '*' --features integration-test
-          pytest tests/integration/
+          cargo test --all-features
+          pytest tests/
