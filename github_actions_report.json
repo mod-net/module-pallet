@@ -1,0 +1,251 @@
+{
+  "summary": {
+    "total_workflows": 6,
+    "valid_workflows": 6,
+    "warnings": 8,
+    "errors": 0
+  },
+  "workflows": [
+    {
+      "file": ".github/workflows/python.yml",
+      "syntax": {
+        "file": ".github/workflows/python.yml",
+        "valid": true,
+        "errors": []
+      },
+      "triggers": {
+        "file": ".github/workflows/python.yml",
+        "triggers": [
+          "push",
+          "pull_request"
+        ],
+        "warnings": []
+      },
+      "actions": {
+        "file": ".github/workflows/python.yml",
+        "actions": [
+          "actions/checkout@v3",
+          "actions/setup-python@v4",
+          "actions/checkout@v3",
+          "actions/setup-python@v4",
+          "codecov/codecov-action@v3"
+        ],
+        "warnings": []
+      },
+      "secrets": {
+        "file": ".github/workflows/python.yml",
+        "secrets": [],
+        "warnings": []
+      },
+      "summary": {
+        "errors": 0,
+        "warnings": 0,
+        "valid": true
+      }
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "syntax": {
+        "file": ".github/workflows/release.yml",
+        "valid": true,
+        "errors": []
+      },
+      "triggers": {
+        "file": ".github/workflows/release.yml",
+        "triggers": [
+          "release"
+        ],
+        "warnings": [
+          "No push or pull_request triggers found"
+        ]
+      },
+      "actions": {
+        "file": ".github/workflows/release.yml",
+        "actions": [
+          "docker/setup-buildx-action@v3",
+          "docker/login-action@v3",
+          "jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be",
+          "docker/build-push-action@v6",
+          "actions/checkout@v4",
+          "softprops/action-gh-release@v2"
+        ],
+        "warnings": []
+      },
+      "secrets": {
+        "file": ".github/workflows/release.yml",
+        "secrets": [
+          "GITHUB_TOKEN"
+        ],
+        "warnings": []
+      },
+      "summary": {
+        "errors": 0,
+        "warnings": 1,
+        "valid": true
+      }
+    },
+    {
+      "file": ".github/workflows/integration.yml",
+      "syntax": {
+        "file": ".github/workflows/integration.yml",
+        "valid": true,
+        "errors": []
+      },
+      "triggers": {
+        "file": ".github/workflows/integration.yml",
+        "triggers": [
+          "push",
+          "pull_request"
+        ],
+        "warnings": []
+      },
+      "actions": {
+        "file": ".github/workflows/integration.yml",
+        "actions": [
+          "actions/checkout@v3",
+          "dtolnay/rust-toolchain@stable",
+          "actions/setup-python@v4"
+        ],
+        "warnings": []
+      },
+      "secrets": {
+        "file": ".github/workflows/integration.yml",
+        "secrets": [],
+        "warnings": []
+      },
+      "summary": {
+        "errors": 0,
+        "warnings": 0,
+        "valid": true
+      }
+    },
+    {
+      "file": ".github/workflows/ci.yml",
+      "syntax": {
+        "file": ".github/workflows/ci.yml",
+        "valid": true,
+        "errors": []
+      },
+      "triggers": {
+        "file": ".github/workflows/ci.yml",
+        "triggers": [
+          "pull_request",
+          "push"
+        ],
+        "warnings": []
+      },
+      "actions": {
+        "file": ".github/workflows/ci.yml",
+        "actions": [
+          "actions/checkout@v4",
+          "./.github/actions/free-disk-space",
+          "./.github/actions/ubuntu-dependencies",
+          "./.github/actions/macos-dependencies",
+          "actions/checkout@v4",
+          "./.github/actions/free-disk-space",
+          "./.github/actions/ubuntu-dependencies",
+          "./.github/actions/macos-dependencies",
+          "actions/checkout@v4",
+          "./.github/actions/free-disk-space"
+        ],
+        "warnings": [
+          "Action './.github/actions/free-disk-space' not version pinned",
+          "Action './.github/actions/ubuntu-dependencies' not version pinned",
+          "Action './.github/actions/macos-dependencies' not version pinned",
+          "Action './.github/actions/free-disk-space' not version pinned",
+          "Action './.github/actions/ubuntu-dependencies' not version pinned",
+          "Action './.github/actions/macos-dependencies' not version pinned",
+          "Action './.github/actions/free-disk-space' not version pinned"
+        ]
+      },
+      "secrets": {
+        "file": ".github/workflows/ci.yml",
+        "secrets": [],
+        "warnings": []
+      },
+      "summary": {
+        "errors": 0,
+        "warnings": 7,
+        "valid": true
+      }
+    },
+    {
+      "file": ".github/workflows/pr-reminder.yml",
+      "syntax": {
+        "file": ".github/workflows/pr-reminder.yml",
+        "valid": true,
+        "errors": []
+      },
+      "triggers": {
+        "file": ".github/workflows/pr-reminder.yml",
+        "triggers": [
+          "pull_request"
+        ],
+        "warnings": []
+      },
+      "actions": {
+        "file": ".github/workflows/pr-reminder.yml",
+        "actions": [
+          "actions/github-script@v6"
+        ],
+        "warnings": []
+      },
+      "secrets": {
+        "file": ".github/workflows/pr-reminder.yml",
+        "secrets": [],
+        "warnings": []
+      },
+      "summary": {
+        "errors": 0,
+        "warnings": 0,
+        "valid": true
+      }
+    },
+    {
+      "file": ".github/workflows/rust.yml",
+      "syntax": {
+        "file": ".github/workflows/rust.yml",
+        "valid": true,
+        "errors": []
+      },
+      "triggers": {
+        "file": ".github/workflows/rust.yml",
+        "triggers": [
+          "push",
+          "pull_request"
+        ],
+        "warnings": []
+      },
+      "actions": {
+        "file": ".github/workflows/rust.yml",
+        "actions": [
+          "actions/checkout@v3",
+          "dtolnay/rust-toolchain@stable",
+          "Swatinem/rust-cache@v2",
+          "actions/checkout@v3",
+          "dtolnay/rust-toolchain@stable",
+          "Swatinem/rust-cache@v2",
+          "actions/checkout@v3",
+          "dtolnay/rust-toolchain@stable",
+          "Swatinem/rust-cache@v2",
+          "actions/checkout@v3",
+          "dtolnay/rust-toolchain@stable",
+          "actions/checkout@v3",
+          "dtolnay/rust-toolchain@stable",
+          "Swatinem/rust-cache@v2"
+        ],
+        "warnings": []
+      },
+      "secrets": {
+        "file": ".github/workflows/rust.yml",
+        "secrets": [],
+        "warnings": []
+      },
+      "summary": {
+        "errors": 0,
+        "warnings": 0,
+        "valid": true
+      }
+    }
+  ]
+}

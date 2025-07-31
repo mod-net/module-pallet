@@ -1,27 +1,51 @@
-# Substrate Node Template
+# Mod-Net Module Registry
 
-A fresh [Substrate](https://substrate.io/) node, ready for hacking :rocket:
+A decentralized module registry built on [Substrate](https://substrate.io/) with IPFS integration for metadata storage :rocket:
 
-A standalone version of this template is available for each release of Polkadot
-in the [Substrate Developer Hub Parachain
-Template](https://github.com/substrate-developer-hub/substrate-node-template/)
-repository. The parachain template is generated directly at each Polkadot
-release branch from the [Solochain Template in
-Substrate](https://github.com/paritytech/polkadot-sdk/tree/master/templates/solochain)
-upstream
+## Project Overview
 
-It is usually best to use the stand-alone version to start a new project. All
-bugs, suggestions, and feature requests should be made upstream in the
-[Substrate](https://github.com/paritytech/polkadot-sdk/tree/master/substrate)
-repository.
+Mod-Net is a decentralized module registry built on Substrate, designed to provide a secure and efficient way to manage and distribute modules. The project features:
+
+- **Module Registry Pallet**: Core Substrate pallet for on-chain module management
+- **IPFS Integration**: Distributed storage for module metadata using `commune-ipfs`
+- **Python Client**: Type-safe client library for interacting with the registry
+- **Production-Ready Workflow**: Comprehensive CI/CD, testing, and documentation
+
+This project is built on the [Substrate Node Template](https://github.com/substrate-developer-hub/substrate-node-template/) with significant enhancements for module registry functionality.
 
 ## Getting Started
 
-Depending on your operating system and Rust version, there might be additional
-packages required to compile this template. Check the
-[Install](https://docs.substrate.io/install/) instructions for your platform for
-the most common dependencies. Alternatively, you can use one of the [alternative
-installation](#alternatives-installations) options.
+### Prerequisites
+
+- Rust and Substrate dependencies ([installation guide](https://docs.substrate.io/install/))
+- Python 3.10 or higher
+- UV package manager (`pip install uv`)
+- IPFS daemon ([installation guide](https://docs.ipfs.tech/install/))
+
+### Development Environment
+
+1. **Clone and Build**
+   ```sh
+   git clone --recursive https://github.com/your-org/mod-net.git
+   cd mod-net/modules
+   cargo build --release
+   ```
+
+2. **Python Environment Setup**
+   ```sh
+   uv venv
+   source .venv/bin/activate
+   uv pip install -r requirements.txt
+   ```
+
+3. **IPFS Setup**
+   ```sh
+   # Start IPFS daemon
+   ipfs daemon
+   # Default endpoints:
+   # - API: http://localhost:5001
+   # - Gateway: http://localhost:8080
+   ```
 
 Fetch solochain template code:
 
@@ -31,15 +55,74 @@ git clone https://github.com/paritytech/polkadot-sdk-solochain-template.git solo
 cd solochain-template
 ```
 
-### Build
+## Development Workflow
 
-🔨 Use the following command to build the node without launching it:
+### Quality Standards
 
-```sh
-cargo build --release
-```
+- No TODOs, placeholders, or mock implementations
+- All code must be production-ready with thorough testing
+- Type hints and documentation required for all code
+- Strict adherence to code formatting and linting rules
 
-### Embedded Docs
+### Git Workflow
+
+1. **Branch Naming**
+   - Features: `feature/descriptive-name`
+   - Fixes: `fix/issue-description`
+   - Documentation: `docs/topic-name`
+
+2. **Commit Messages**
+   Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard:
+   ```
+   type(scope): description
+   
+   [optional body]
+   [optional footer]
+   ```
+
+### Testing
+
+1. **Rust Tests**
+   ```sh
+   # Run all Rust tests
+   cargo test --all
+   # Run specific pallet tests
+   cargo test -p pallet-module-registry
+   ```
+
+2. **Python Tests**
+   ```sh
+   # Run Python tests with coverage
+   pytest tests/ --cov=mod_net_client
+   ```
+
+3. **Integration Tests**
+   ```sh
+   # Ensure IPFS daemon is running
+   ./scripts/run-integration-tests.sh
+   ```
+
+### Code Quality
+
+1. **Rust**
+   ```sh
+   # Format code
+   cargo fmt --all
+   # Run clippy
+   cargo clippy --all-targets --all-features
+   ```
+
+2. **Python**
+   ```sh
+   # Format code
+   black mod_net_client tests
+   isort mod_net_client tests
+   # Run linters
+   ruff check mod_net_client tests
+   mypy mod_net_client tests
+   ```
+
+### Documentation
 
 After you build the project, you can use the following command to explore its
 parameters and subcommands:
@@ -120,10 +203,35 @@ also find the source code and instructions for hosting your own instance in the
 If you want to see the multi-node consensus algorithm in action, see [Simulate a
 network](https://docs.substrate.io/tutorials/build-a-blockchain/simulate-network/).
 
-## Template Structure
+## Project Architecture
 
-A Substrate project such as this consists of a number of components that are
-spread across a few directories.
+The Mod-Net module registry consists of several key components:
+
+### Module Registry Pallet
+
+The core Substrate pallet (`pallet-module-registry`) provides:
+- On-chain module registration and verification
+- Module metadata management with IPFS integration
+- Version control and dependency tracking
+- Access control and permissions
+
+### IPFS Integration
+
+The `commune-ipfs` submodule provides:
+- Distributed storage for module metadata
+- FastAPI backend for IPFS interaction
+- Redundant storage and content addressing
+- Default endpoints:
+  - API: http://localhost:5001
+  - Gateway: http://localhost:8080
+
+### Python Client
+
+The `mod_net_client` package provides:
+- Type-safe interface to the module registry
+- IPFS metadata management
+- Substrate RPC interaction
+- Comprehensive test suite
 
 ### Node
 
@@ -167,9 +275,11 @@ following:
 
 ### Runtime
 
-In Substrate, the terms "runtime" and "state transition function" are analogous.
-Both terms refer to the core logic of the blockchain that is responsible for
-validating blocks and executing the state changes they define. The Substrate
+The Mod-Net runtime extends the Substrate runtime with our custom module registry pallet. Key features include:
+- Module registration and verification logic
+- IPFS CID storage and validation
+- Access control and permissions management
+- Version control and dependency resolution The Substrate
 project in this repository uses
 [FRAME](https://docs.substrate.io/learn/runtime-development/#frame) to construct
 a blockchain runtime. FRAME allows runtime developers to declare domain-specific
@@ -189,13 +299,26 @@ template and note the following:
   macro, which is part of the [core FRAME pallet
   library](https://docs.substrate.io/reference/frame-pallets/#system-pallets).
 
-### Pallets
+### CI/CD Pipeline
 
-The runtime in this project is constructed using many FRAME pallets that ship
-with [the Substrate
-repository](https://github.com/paritytech/polkadot-sdk/tree/master/substrate/frame) and a
-template pallet that is [defined in the
-`pallets`](./pallets/template/src/lib.rs) directory.
+Comprehensive GitHub Actions workflows ensure code quality:
+
+1. **Rust CI (`rust.yml`)**
+   - Cargo check and build
+   - Clippy linting
+   - Documentation generation
+   - Unit and integration tests
+
+2. **Python CI (`python.yml`)**
+   - Black and isort formatting
+   - Ruff and mypy linting
+   - Unit tests with coverage
+   - Type checking
+
+3. **Integration Tests (`integration.yml`)**
+   - IPFS service container
+   - Combined Rust/Python testing
+   - End-to-end workflow validation
 
 A FRAME pallet is comprised of a number of blockchain primitives, including:
 
