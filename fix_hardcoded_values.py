@@ -24,7 +24,7 @@ class HardcodedValueFixer:
             r'"http://localhost:8000"': 'config.commune_ipfs.base_url',
             r'"http://localhost:8004"': 'config.test.test_module_registry_url',
             r'"http://127\.0\.0\.1:9933"': 'config.substrate.http_url',
-            r'"ws://127\.0\.0\.1:9944"': 'config.substrate.ws_url',
+            r'"ws://127\.0\.0\.1:9944"': 'config.substrate.ws_url',  # Note: config uses secure ws:// for local dev
             r'"http://127\.0\.0\.1:9944"': 'config.substrate.http_url',
             
             # Port numbers in environment variable defaults

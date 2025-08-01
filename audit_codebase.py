@@ -170,7 +170,7 @@ class CodebaseAuditor:
             return False
             
         pattern_config = self.patterns[pattern_name]
-        exclude_patterns = pattern_config.get('exclude_patterns', [])
+        exclude_patterns = pattern_config.get('exclude_patterns', [])  # type: ignore
         
         # Additional pattern-specific exclusions
         if pattern_name == 'hardcoded_urls' or pattern_name == 'hardcoded_ports':
@@ -282,18 +282,20 @@ class CodebaseAuditor:
             return
             
         # Count by severity
-        severity_counts = defaultdict(int)
+        severity_counts: Dict[str, int] = {}
         for issues in results.values():
             for issue in issues:
-                severity_counts[issue.severity] += 1
+                severity = issue.severity
+                severity_counts[severity] = severity_counts.get(severity, 0) + 1
         
-        print(f"🔴 High severity: {severity_counts['high']}")
-        print(f"🟡 Medium severity: {severity_counts['medium']}")
-        print(f"🟢 Low severity: {severity_counts['low']}")
+        print(f"🔴 High severity: {severity_counts.get('high', 0)}")
+        print(f"🟡 Medium severity: {severity_counts.get('medium', 0)}")
+        print(f"🟢 Low severity: {severity_counts.get('low', 0)}")
         
         print(f"\n📋 Issues by Category:")
+        results: List[str] = []
         for category, issues in sorted(results.items()):
-            print(f"  {category}: {len(issues)} issues")
+            results.append(f"  {category}: {len(issues)} issues")
     
     def print_detailed_results(self, results: Dict[str, List[AuditResult]], max_per_category: int = 10):
         """Print detailed audit results."""

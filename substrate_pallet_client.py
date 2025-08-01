@@ -677,6 +677,7 @@ async def test_real_pallet_integration():
         print()
 
         # Test module registration
+        config = get_config()
         test_public_key = config.substrate.test_public_key
         test_cid = "QmTestCID1234567890abcdef1234567890abcdef"
 

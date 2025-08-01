@@ -10,6 +10,7 @@ This script focuses on debugging the storage query issues by:
 
 import asyncio
 
+from config import get_config
 from substrate_pallet_client import SubstratePalletClient
 
 
@@ -19,6 +20,7 @@ async def debug_storage_queries():
     print("=" * 50)
 
     client = SubstratePalletClient()
+    config = get_config()
 
     try:
         # Connect to chain
@@ -29,7 +31,7 @@ async def debug_storage_queries():
         print("✅ Connected to chain")
 
         # Test key that should exist (from previous ModuleAlreadyExists error)
-        test_key = "0x1234567890abcdef1234567890abcdef12345678"
+        test_key = config.substrate.test_public_key
 
         print(f"\n🧪 Testing storage queries for key: {test_key}")
 
@@ -93,7 +95,8 @@ async def debug_storage_queries():
 
         # Try to register a new module to see the storage in action
         print("\n🧪 Attempting fresh registration to observe storage...")
-        new_test_key = "0xabcdef1234567890abcdef1234567890abcdef12"
+        # Generate a different test key for new registration
+        new_test_key = "0x" + config.substrate.test_public_key[2:34] + "abcdef1234567890abcdef12"
         new_test_cid = "QmNewTestCID1234567890abcdef1234567890"
 
         try:

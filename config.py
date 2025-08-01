@@ -12,12 +12,21 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
+def _get_default_ws_url() -> str:
+    """Get default WebSocket URL with security considerations."""
+    # Use secure WebSocket (wss://) for production environments
+    if os.getenv('ENVIRONMENT') == 'production':
+        return 'wss://substrate-node:9944'
+    # Use insecure WebSocket (ws://) only for local development
+    return 'ws://127.0.0.1:9944'
+
+
 @dataclass
 class SubstrateConfig:
     """Configuration for Substrate blockchain connection."""
     # Connection URLs
     http_url: str = field(default_factory=lambda: os.getenv('SUBSTRATE_HTTP_URL', 'http://127.0.0.1:9933'))
-    ws_url: str = field(default_factory=lambda: os.getenv('SUBSTRATE_WS_URL', 'ws://127.0.0.1:9944'))
+    ws_url: str = field(default_factory=lambda: os.getenv('SUBSTRATE_WS_URL', _get_default_ws_url()))
     
     # Ports
     http_port: int = field(default_factory=lambda: int(os.getenv('SUBSTRATE_HTTP_PORT', '9933')))
