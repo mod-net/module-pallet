@@ -20,6 +20,9 @@ import json
 import sys
 from pathlib import Path
 
+import aiohttp
+from config import get_config
+
 # Add paths for imports
 sys.path.insert(0, str(Path(__file__).parent / "modules" / "test_module"))
 sys.path.insert(0, str(Path(__file__).parent / "commune-ipfs"))
@@ -51,8 +54,10 @@ class RealChainIntegrationTest:
     """
 
     def __init__(self):
-        self.substrate_url = "ws://127.0.0.1:9944"  # Default Substrate WebSocket
-        self.ipfs_backend_url = "http://localhost:8000"  # commune-ipfs backend
+        # Configuration
+        config = get_config()
+        self.substrate_url = config.test.substrate_url
+        self.ipfs_backend_url = config.test.ipfs_backend_url
         self.test_module = None
         self.session = None
 
@@ -98,6 +103,8 @@ class RealChainIntegrationTest:
         print("📡 Checking commune-ipfs Backend Connection...")
 
         try:
+            if self.session is None:
+                raise RuntimeError("Session not initialized")
             async with self.session.get(f"{self.ipfs_backend_url}/health") as response:
                 if response.status == 200:
                     health_data = await response.json()
@@ -127,6 +134,8 @@ class RealChainIntegrationTest:
 
         try:
             # Store metadata on IPFS via commune-ipfs backend
+            if self.session is None:
+                raise RuntimeError("Session not initialized")
             async with self.session.post(
                 f"{self.ipfs_backend_url}/api/modules/register",
                 json={
@@ -142,6 +151,8 @@ class RealChainIntegrationTest:
                     print(f"✅ Metadata stored on IPFS with CID: {cid}")
 
                     # Verify we can retrieve the metadata
+                    if self.session is None:
+                        raise RuntimeError("Session not initialized")
                     async with self.session.get(
                         f"{self.ipfs_backend_url}/api/modules/{cid}"
                     ) as get_response:
@@ -185,7 +196,7 @@ class RealChainIntegrationTest:
                 "pallet": "ModuleRegistry",
                 "call": "register",
                 "args": {
-                    "public_key": self.test_module.public_key.encode('utf-8'),
+                    "public_key": getattr(self.test_module, 'public_key', 'default_key').encode('utf-8'),
                     "cid": cid.encode('utf-8')
                 }
             }

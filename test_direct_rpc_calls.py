@@ -15,6 +15,7 @@ import asyncio
 from typing import Any
 
 import aiohttp
+from config import get_config
 
 
 class DirectRPCClient:
@@ -22,9 +23,10 @@ class DirectRPCClient:
     Direct RPC client for Substrate chain communication.
     """
 
-    def __init__(self, rpc_url: str = "http://127.0.0.1:9933"):
-        self.rpc_url = rpc_url
-        self.session = None
+    def __init__(self, rpc_url: str | None = None):
+        config = get_config()
+        self.rpc_url = rpc_url or config.substrate.http_url
+        self.session: aiohttp.ClientSession | None = None
         self.request_id = 1
 
     async def __aenter__(self):
@@ -35,7 +37,7 @@ class DirectRPCClient:
         if self.session:
             await self.session.close()
 
-    async def rpc_call(self, method: str, params: list = None) -> dict[str, Any]:
+    async def rpc_call(self, method: str, params: list[Any] | None = None) -> dict[str, Any]:
         """Make a direct RPC call to the Substrate node."""
         if params is None:
             params = []
@@ -50,6 +52,8 @@ class DirectRPCClient:
         self.request_id += 1
 
         try:
+            if self.session is None:
+                raise RuntimeError("Session not initialized")
             async with self.session.post(
                 self.rpc_url,
                 json=payload,
@@ -61,7 +65,12 @@ class DirectRPCClient:
                     result = await response.json()
                     if "error" in result:
                         raise Exception(f"RPC Error: {result['error']}")
-                    return result.get("result")
+                    rpc_result = result.get("result", {})
+                    # Ensure we return a dict[str, Any] as declared
+                    if isinstance(rpc_result, dict):
+                        return rpc_result
+                    else:
+                        return {"value": rpc_result}
                 else:
                     error_text = await response.text()
                     raise Exception(f"HTTP {response.status}: {error_text}")
@@ -299,12 +308,9 @@ async def main():
     print("Testing direct communication with Substrate node")
     print()
 
-    # Try different RPC endpoints
-    rpc_urls = [
-        "http://127.0.0.1:9933",
-        "http://localhost:9933",
-        "http://0.0.0.0:9933"
-    ]
+    # Test multiple RPC endpoints
+    config = get_config()
+    rpc_urls = config.test.rpc_test_urls
 
     for rpc_url in rpc_urls:
         print(f"🔍 Trying RPC URL: {rpc_url}")

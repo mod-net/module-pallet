@@ -18,6 +18,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import Any
 
+from config import get_config
 from substrate_config import substrate_config
 
 try:
@@ -51,19 +52,20 @@ class SubstratePalletClient:
     Performs actual blockchain transactions that appear in block logs.
     """
 
-    def __init__(self, substrate_url: str = None, keypair_seed: str = "//Alice"):
+    def __init__(self, substrate_url: str | None = None, keypair_seed: str | None = None):
         """
         Initialize the Substrate pallet client.
 
         Args:
             substrate_url: Substrate HTTP RPC URL (auto-detected if None)
-            keypair_seed: Keypair seed for signing transactions (//Alice for dev)
+            keypair_seed: Keypair seed for signing transactions (from config if None)
         """
+        config = get_config()
         # Prefer WebSocket for transaction monitoring, fallback to HTTP
         self.substrate_url = substrate_url or substrate_config.config.ws_url
-        self.substrate = None
-        self.keypair = None
-        self.keypair_seed = keypair_seed
+        self.substrate: SubstrateInterface | None = None
+        self.keypair: Keypair | None = None
+        self.keypair_seed = keypair_seed or config.substrate.keypair_seed
 
     def connect(self) -> bool:
         """
@@ -93,11 +95,12 @@ class SubstratePalletClient:
                     self.substrate = SubstrateInterface(url=url)
 
                     # Test connection by getting chain info
-                    chain_info = self.substrate.get_chain_head()
-                    print(f"✅ Connected to Substrate chain via {url}")
-                    print(f"   Chain: {self.substrate.chain}")
-                    print(f"   Runtime Version: {self.substrate.runtime_version}")
-                    print(f"   Current Block: #{chain_info}")
+                    if self.substrate is not None:
+                        chain_info = self.substrate.get_chain_head()
+                        print(f"✅ Connected to Substrate chain via {url}")
+                        print(f"   Chain: {self.substrate.chain}")
+                        print(f"   Runtime Version: {self.substrate.runtime_version}")
+                        print(f"   Current Block: #{chain_info}")
 
                     self.substrate_url = url  # Update to working URL
                     connection_successful = True
@@ -113,7 +116,8 @@ class SubstratePalletClient:
 
             # Create keypair for signing transactions
             self.keypair = Keypair.create_from_uri(self.keypair_seed)
-            print(f"🔑 Using keypair: {self.keypair.ss58_address}")
+            if self.keypair is not None:
+                print(f"🔑 Using keypair: {self.keypair.ss58_address}")
 
             return True
 
@@ -673,7 +677,7 @@ async def test_real_pallet_integration():
         print()
 
         # Test module registration
-        test_public_key = "0x1234567890abcdef1234567890abcdef12345678"
+        test_public_key = config.substrate.test_public_key
         test_cid = "QmTestCID1234567890abcdef1234567890abcdef"
 
         print("🧪 Test 1: Register Module")
@@ -760,6 +764,6 @@ if __name__ == "__main__":
         print("This is TRUE end-to-end blockchain integration.")
     else:
         print("\n⚠️ CONCLUSION:")
-        print("Real blockchain integration needs debugging.")
+        print("Some blockchain integration tests failed. Check the logs above for details.")
 
     exit(0 if success else 1)

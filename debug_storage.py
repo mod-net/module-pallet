@@ -43,6 +43,9 @@ async def debug_storage_queries():
         for desc, key_variant in key_variants:
             print(f"\n📋 Trying {desc}: {key_variant}")
             try:
+                if client.substrate is None:
+                    raise RuntimeError("Client not properly connected")
+
                 result = client.substrate.query(
                     module='ModuleRegistry',
                     storage_function='Modules',
@@ -62,6 +65,9 @@ async def debug_storage_queries():
         # Try to list all storage entries to see what's actually stored
         print("\n📋 Attempting to list all storage entries...")
         try:
+            if client.substrate is None:
+                raise RuntimeError("Client not properly connected")
+
             result = client.substrate.query_map(
                 module='ModuleRegistry',
                 storage_function='Modules'

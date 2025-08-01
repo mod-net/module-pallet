@@ -14,9 +14,11 @@ import json
 import sys
 from pathlib import Path
 
-# Add the module to the path
+# Add the parent directory to sys.path so we can import the module
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from config import get_config
 from module import TestModule
 
 
@@ -130,9 +132,10 @@ async def test_registry_integration():
     print("\n🗂️ Testing Module Registry Integration")
     print("=" * 40)
 
+    config = get_config()
     module = TestModule(
         name="registry-test-module",
-        registry_url="http://localhost:8004"
+        registry_url=config.test.test_module_registry_url
     )
 
     # Test registry registration (mock)

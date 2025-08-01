@@ -3,15 +3,17 @@
 from typing import Any
 
 import ipfshttpclient
+from config import get_config
 
 
 class IPFSHandler:
     """Handler for IPFS operations."""
 
+    config = get_config()
     def __init__(
         self,
-        api_url: str = "http://localhost:5001",
-        gateway_url: str = "http://localhost:8080",
+        api_url: str = config.ipfs.api_url,
+        gateway_url: str = config.ipfs.gateway_url,
     ) -> None:
         """Initialize the IPFS handler.
 

@@ -16,6 +16,7 @@ import json
 import time
 from datetime import datetime
 from typing import Any
+from config import get_config
 
 # Import commune if available, otherwise create a minimal mock
 try:
@@ -75,9 +76,12 @@ class TestModule:
 
     def __init__(self,
                  name: str = "test-module",
+                 version: str = "1.0.0",
+                 description: str = "A test module for the Module Registry",
                  public_key: str | None = None,
-                 registry_url: str = "http://localhost:8004",
+                 registry_url: str | None = None,
                  **kwargs):
+        config = get_config()
         """
         Initialize the test module.
 
@@ -88,14 +92,17 @@ class TestModule:
             **kwargs: Additional configuration parameters
         """
         self.name = name
+        self.version = version
+        self.description = description
+        self.registry_url = registry_url or config.test.test_module_registry_url
         self.public_key = public_key or self.generate_mock_key()
-        self.registry_url = registry_url
-        self.start_time = time.time()
         self.call_count = 0
 
         # Update metadata with instance-specific info
         self.metadata.update({
             "name": self.name,
+            "version": self.version,
+            "description": self.description,
             "public_key": self.public_key,
             "updated_at": datetime.now().isoformat()
         })
@@ -488,7 +495,7 @@ class TestModule:
         """
         c.print(f"🧪 Running tests for {self.name}", color='blue')
 
-        test_results = {
+        test_results: dict[str, Any] = {
             "module": self.name,
             "timestamp": time.time(),
             "tests": {}
@@ -500,52 +507,55 @@ class TestModule:
                 continue  # Skip meta functions
 
             try:
+                tests_dict = test_results["tests"]
                 if fn_name == 'compute':
                     result = self.compute("add", 5, 10)
-                    test_results["tests"][fn_name] = {
+                    tests_dict[fn_name] = {
                         "passed": result.get("result") == 15,
                         "result": result
                     }
                 elif fn_name == 'fibonacci':
                     result = self.fibonacci(6)
-                    test_results["tests"][fn_name] = {
+                    tests_dict[fn_name] = {
                         "passed": len(result.get("sequence", [])) == 6,
                         "result": result
                     }
                 elif fn_name == 'prime_check':
                     result = self.prime_check([7, 8, 9])
-                    test_results["tests"][fn_name] = {
+                    tests_dict[fn_name] = {
                         "passed": len(result.get("results", [])) == 3,
                         "result": result
                     }
                 elif fn_name == 'data_transform':
                     result = self.data_transform("hello", "reverse")
-                    test_results["tests"][fn_name] = {
+                    tests_dict[fn_name] = {
                         "passed": result.get("result") == "olleh",
                         "result": result
                     }
                 elif fn_name == 'get_metadata':
                     result = self.get_metadata()
-                    test_results["tests"][fn_name] = {
+                    tests_dict[fn_name] = {
                         "passed": "name" in result and "version" in result,
                         "result": result
                     }
                 elif fn_name == 'health_check':
                     result = self.health_check()
-                    test_results["tests"][fn_name] = {
+                    tests_dict[fn_name] = {
                         "passed": result.get("all_tests_passed", False),
                         "result": result
                     }
 
             except Exception as e:
-                test_results["tests"][fn_name] = {
+                tests_dict = test_results["tests"]
+                tests_dict[fn_name] = {
                     "passed": False,
                     "error": str(e)
                 }
 
         # Overall test result
-        passed_tests = sum(1 for test in test_results["tests"].values() if test.get("passed", False))
-        total_tests = len(test_results["tests"])
+        tests_dict = test_results["tests"]
+        passed_tests = sum(1 for test in tests_dict.values() if test.get("passed", False))
+        total_tests = len(tests_dict)
         test_results["summary"] = {
             "total_tests": total_tests,
             "passed_tests": passed_tests,
@@ -554,7 +564,8 @@ class TestModule:
             "overall_passed": passed_tests == total_tests
         }
 
-        status_color = 'green' if test_results["summary"]["overall_passed"] else 'red'
+        summary_dict = test_results["summary"]
+        status_color = 'green' if summary_dict["overall_passed"] else 'red'
         c.print(f"✅ Tests completed: {passed_tests}/{total_tests} passed", color=status_color)
 
         return test_results

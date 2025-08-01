@@ -87,6 +87,9 @@ async def complete_qa_test():
         print("🔄 Step 4: Module Update")
         try:
             # Use direct substrate interface to avoid event parsing issues
+            if client.substrate is None or client.keypair is None:
+                raise RuntimeError("Client not properly connected")
+
             call = client.substrate.compose_call(
                 call_module='ModuleRegistry',
                 call_function='update_module',
@@ -135,6 +138,9 @@ async def complete_qa_test():
         # Test 5: List all modules (simplified)
         print("📋 Step 6: List All Modules")
         try:
+            if client.substrate is None:
+                raise RuntimeError("Client not properly connected")
+
             result = client.substrate.query_map(
                 module='ModuleRegistry',
                 storage_function='Modules'
@@ -157,6 +163,9 @@ async def complete_qa_test():
         # Test 6: Remove module (simplified)
         print("🗑️ Step 7: Module Removal")
         try:
+            if client.substrate is None or client.keypair is None:
+                raise RuntimeError("Client not properly connected")
+
             call = client.substrate.compose_call(
                 call_module='ModuleRegistry',
                 call_function='remove_module',
@@ -226,6 +235,6 @@ if __name__ == "__main__":
         print("\n🎯 READY FOR IPFS INTEGRATION!")
     else:
         print("❌ QA TEST FAILED")
-        print("Some functionality needs debugging")
+        print("Some QA tests failed. Review the test results above for specific issues.")
 
     exit(0 if success else 1)
