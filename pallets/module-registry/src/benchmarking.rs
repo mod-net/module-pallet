@@ -23,7 +23,8 @@ mod benchmarks {
         register_module(RawOrigin::Signed(caller), key, cid);
 
         // Verify that the module was registered
-        let bounded_key: BoundedVec<u8, T::MaxKeyLength> = sp_std::vec![1u8; 32].try_into().unwrap();
+        let bounded_key: BoundedVec<u8, T::MaxKeyLength> =
+            sp_std::vec![1u8; 32].try_into().unwrap();
         assert!(Modules::<T>::contains_key(&bounded_key));
     }
 
