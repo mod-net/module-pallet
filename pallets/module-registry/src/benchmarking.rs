@@ -2,11 +2,12 @@
 
 use super::*;
 
+use frame_support::BoundedVec;
+
 #[allow(unused)]
 use crate::Pallet as ModuleRegistry;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
-use sp_std::vec;
 
 #[benchmarks]
 mod benchmarks {
@@ -15,21 +16,21 @@ mod benchmarks {
     #[benchmark]
     fn register_module() {
         let caller: T::AccountId = whitelisted_caller();
-        let key = vec![1u8; 32]; // Ed25519 key
+        let key = sp_std::vec![1u8; 32]; // Ed25519 key
         let cid = b"QmTestCID123456789012345678901234".to_vec();
 
         #[extrinsic_call]
         register_module(RawOrigin::Signed(caller), key, cid);
 
         // Verify that the module was registered
-        let bounded_key: BoundedVec<u8, T::MaxKeyLength> = vec![1u8; 32].try_into().unwrap();
+        let bounded_key: BoundedVec<u8, T::MaxKeyLength> = sp_std::vec![1u8; 32].try_into().unwrap();
         assert!(Modules::<T>::contains_key(&bounded_key));
     }
 
     #[benchmark]
     fn update_module() {
         let caller: T::AccountId = whitelisted_caller();
-        let key = vec![1u8; 32]; // Ed25519 key
+        let key = sp_std::vec![1u8; 32]; // Ed25519 key
         let cid1 = b"QmTestCID123456789012345678901234".to_vec();
         let cid2 = b"QmNewCID1234567890123456789012345".to_vec();
 
@@ -51,7 +52,7 @@ mod benchmarks {
     #[benchmark]
     fn remove_module() {
         let caller: T::AccountId = whitelisted_caller();
-        let key = vec![1u8; 32]; // Ed25519 key
+        let key = sp_std::vec![1u8; 32]; // Ed25519 key
         let cid = b"QmTestCID123456789012345678901234".to_vec();
 
         // First register a module

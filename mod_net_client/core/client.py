@@ -1,15 +1,14 @@
 """Core client for interacting with the module registry."""
 
-from substrateinterface import SubstrateInterface
-from typing import Optional
 
 from config import get_config
-from mod_net_client.ipfs.handler import IPFSHandler
+from substrateinterface import SubstrateInterface
+
 
 class ModNetClient:
     """Client for interacting with the Mod-Net module registry."""
 
-    def __init__(self, substrate_url: str, ipfs_api_url: Optional[str] = None, ipfs_gateway_url: Optional[str] = None):
+    def __init__(self, substrate_url: str, ipfs_api_url: str | None = None, ipfs_gateway_url: str | None = None):
         """
         Initialize the ModNet client.
 

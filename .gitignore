@@ -1,5 +1,5 @@
 */test_env/
-
+.ruff_cache
 
 # Rust
 target/

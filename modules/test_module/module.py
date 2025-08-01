@@ -16,6 +16,7 @@ import json
 import time
 from datetime import datetime
 from typing import Any
+
 from config import get_config
 
 # Import commune if available, otherwise create a minimal mock
@@ -97,6 +98,7 @@ class TestModule:
         self.registry_url = registry_url or config.test.test_module_registry_url
         self.public_key = public_key or self.generate_mock_key()
         self.call_count = 0
+        self.start_time = time.time()
 
         # Update metadata with instance-specific info
         self.metadata.update({
