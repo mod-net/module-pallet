@@ -35,7 +35,7 @@ def test_health_check_success(mock_substrate: MagicMock) -> None:
     mock_instance = MagicMock()
     mock_instance.get_chain_head.return_value = "0x1234"
     mock_substrate.return_value = mock_instance
-    
+
     client = ModNetClient("ws://localhost:9944")
     assert client.health_check() is True
     mock_instance.get_chain_head.assert_called_once()
@@ -47,7 +47,7 @@ def test_health_check_failure(mock_substrate: MagicMock) -> None:
     mock_instance = MagicMock()
     mock_instance.get_chain_head.side_effect = Exception("Connection failed")
     mock_substrate.return_value = mock_instance
-    
+
     client = ModNetClient("ws://localhost:9944")
     assert client.health_check() is False
     mock_instance.get_chain_head.assert_called_once()

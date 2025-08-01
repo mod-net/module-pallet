@@ -22,35 +22,35 @@ async def complete_qa_test():
     print("=" * 70)
     print("Testing all core functionality with fresh data to avoid conflicts")
     print()
-    
+
     client = SubstratePalletClient()
-    
+
     try:
         # Connect to chain
         print("🔗 Step 1: Chain Connection")
         if not client.connect():
             print("❌ Failed to connect to chain")
             return False
-        
+
         print("✅ WebSocket connection successful")
         chain_info = client.get_chain_info()
         print(f"   Chain: {chain_info['chain']}")
         print(f"   Current Block: #{chain_info['current_block']}")
         print(f"   Signer: {chain_info['keypair_address']}")
         print()
-        
+
         # Use unique identifiers for this QA run
         timestamp = int(time.time())
         unique_key = f"0xqa{timestamp:08x}{'0' * 26}"  # Ensure proper length
         test_cid = f"QmQATest{timestamp}"
         updated_cid = f"QmQAUpdated{timestamp}"
-        
-        print(f"🧪 QA Test Identifiers:")
+
+        print("🧪 QA Test Identifiers:")
         print(f"   Key: {unique_key}")
         print(f"   Original CID: {test_cid}")
         print(f"   Updated CID: {updated_cid}")
         print()
-        
+
         # Test 1: Register new module
         print("📝 Step 2: Module Registration")
         try:
@@ -67,12 +67,12 @@ async def complete_qa_test():
                 print(f"❌ Registration failed: {e}")
                 return False
         print()
-        
+
         # Test 2: Query the module
         print("🔍 Step 3: Storage Query")
         retrieved_cid = client.get_module_by_key(unique_key)
         if retrieved_cid:
-            print(f"✅ Query successful!")
+            print("✅ Query successful!")
             print(f"   Retrieved CID: {retrieved_cid}")
             if retrieved_cid == test_cid:
                 print("   ✅ CID matches expected value")
@@ -82,7 +82,7 @@ async def complete_qa_test():
             print("❌ Query failed - no data found")
             return False
         print()
-        
+
         # Test 3: Update the module (simplified to avoid event parsing issues)
         print("🔄 Step 4: Module Update")
         try:
@@ -95,14 +95,14 @@ async def complete_qa_test():
                     'cid': updated_cid
                 }
             )
-            
+
             extrinsic = client.substrate.create_signed_extrinsic(
                 call=call,
                 keypair=client.keypair
             )
-            
+
             receipt = client.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
-            
+
             if receipt.is_success:
                 print("✅ Update successful!")
                 print(f"   Block Hash: {receipt.block_hash}")
@@ -111,17 +111,17 @@ async def complete_qa_test():
             else:
                 print(f"❌ Update failed: {receipt.error_message}")
                 return False
-                
+
         except Exception as e:
             print(f"❌ Update failed: {e}")
             return False
         print()
-        
+
         # Test 4: Verify the update
         print("🔍 Step 5: Update Verification")
         updated_retrieved = client.get_module_by_key(unique_key)
         if updated_retrieved:
-            print(f"✅ Update verification successful!")
+            print("✅ Update verification successful!")
             print(f"   New CID: {updated_retrieved}")
             if updated_retrieved == updated_cid:
                 print("   ✅ Update applied correctly")
@@ -131,7 +131,7 @@ async def complete_qa_test():
             print("❌ Update verification failed - no data found")
             return False
         print()
-        
+
         # Test 5: List all modules (simplified)
         print("📋 Step 6: List All Modules")
         try:
@@ -139,21 +139,21 @@ async def complete_qa_test():
                 module='ModuleRegistry',
                 storage_function='Modules'
             )
-            
+
             count = 0
-            for item in result:
+            for _item in result:
                 count += 1
                 if count <= 3:  # Show first 3 entries
                     print(f"   📦 Entry {count}: Key exists with data")
-            
-            print(f"✅ Storage map query successful!")
+
+            print("✅ Storage map query successful!")
             print(f"   Total modules found: {count}")
-            
+
         except Exception as e:
             print(f"❌ List modules failed: {e}")
             return False
         print()
-        
+
         # Test 6: Remove module (simplified)
         print("🗑️ Step 7: Module Removal")
         try:
@@ -162,14 +162,14 @@ async def complete_qa_test():
                 call_function='remove_module',
                 call_params={'key': unique_key}
             )
-            
+
             extrinsic = client.substrate.create_signed_extrinsic(
                 call=call,
                 keypair=client.keypair
             )
-            
+
             receipt = client.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
-            
+
             if receipt.is_success:
                 print("✅ Removal successful!")
                 print(f"   Block Hash: {receipt.block_hash}")
@@ -177,12 +177,12 @@ async def complete_qa_test():
             else:
                 print(f"❌ Removal failed: {receipt.error_message}")
                 return False
-                
+
         except Exception as e:
             print(f"❌ Removal failed: {e}")
             return False
         print()
-        
+
         # Test 7: Verify removal
         print("🔍 Step 8: Removal Verification")
         removed_check = client.get_module_by_key(unique_key)
@@ -193,15 +193,15 @@ async def complete_qa_test():
             print(f"⚠️ Module still exists: {removed_check}")
             print("   (May be due to test timing or concurrent operations)")
         print()
-        
+
         return True
-        
+
     except Exception as e:
         print(f"❌ QA test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
-        
+
     finally:
         client.disconnect()
         print("🔌 Disconnected from chain")
@@ -210,9 +210,9 @@ if __name__ == "__main__":
     print("🚀 Starting Complete QA Test")
     print("This test demonstrates full end-to-end Substrate pallet functionality")
     print()
-    
+
     success = asyncio.run(complete_qa_test())
-    
+
     print("\n" + "=" * 70)
     if success:
         print("🎉 QA TEST PASSED!")
@@ -227,5 +227,5 @@ if __name__ == "__main__":
     else:
         print("❌ QA TEST FAILED")
         print("Some functionality needs debugging")
-    
+
     exit(0 if success else 1)

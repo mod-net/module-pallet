@@ -17,30 +17,29 @@ async def debug_storage_queries():
     """Debug storage query issues step by step."""
     print("🔍 Storage Query Debug Session")
     print("=" * 50)
-    
+
     client = SubstratePalletClient()
-    
+
     try:
         # Connect to chain
         if not client.connect():
             print("❌ Failed to connect to chain")
             return False
-        
+
         print("✅ Connected to chain")
-        
+
         # Test key that should exist (from previous ModuleAlreadyExists error)
         test_key = "0x1234567890abcdef1234567890abcdef12345678"
-        test_cid = "QmTestCID1234567890abcdef1234567890abcdef"
-        
+
         print(f"\n🧪 Testing storage queries for key: {test_key}")
-        
+
         # Try different key encoding methods
         key_variants = [
             ("Raw string", test_key),
             ("UTF-8 bytes", test_key.encode('utf-8')),
             ("Hex decoded", bytes.fromhex(test_key[2:]) if test_key.startswith('0x') else test_key.encode()),
         ]
-        
+
         for desc, key_variant in key_variants:
             print(f"\n📋 Trying {desc}: {key_variant}")
             try:
@@ -52,16 +51,16 @@ async def debug_storage_queries():
                 print(f"   Result: {result}")
                 print(f"   Result value: {result.value}")
                 print(f"   Result type: {type(result.value)}")
-                
+
                 if result.value is not None:
                     print(f"   ✅ Found data with {desc}!")
                     break
-                    
+
             except Exception as e:
                 print(f"   ❌ Error with {desc}: {e}")
-        
+
         # Try to list all storage entries to see what's actually stored
-        print(f"\n📋 Attempting to list all storage entries...")
+        print("\n📋 Attempting to list all storage entries...")
         try:
             result = client.substrate.query_map(
                 module='ModuleRegistry',
@@ -69,7 +68,7 @@ async def debug_storage_queries():
             )
             print(f"   Query map result: {result}")
             print(f"   Query map type: {type(result)}")
-            
+
             if result:
                 print(f"   Found {len(result)} entries:")
                 for i, item in enumerate(result):
@@ -80,39 +79,39 @@ async def debug_storage_queries():
                         print(f"       Value: {item.value} (type: {type(item.value)})")
             else:
                 print("   No entries found in storage map")
-                
+
         except Exception as e:
             print(f"   ❌ Query map error: {e}")
             import traceback
             traceback.print_exc()
-        
+
         # Try to register a new module to see the storage in action
-        print(f"\n🧪 Attempting fresh registration to observe storage...")
+        print("\n🧪 Attempting fresh registration to observe storage...")
         new_test_key = "0xabcdef1234567890abcdef1234567890abcdef12"
         new_test_cid = "QmNewTestCID1234567890abcdef1234567890"
-        
+
         try:
-            registration = client.register_module(new_test_key, new_test_cid)
-            print(f"✅ Fresh registration successful!")
-            
+            client.register_module(new_test_key, new_test_cid)
+            print("✅ Fresh registration successful!")
+
             # Immediately query the fresh registration
-            print(f"🔍 Querying fresh registration...")
+            print("🔍 Querying fresh registration...")
             fresh_result = client.get_module_by_key(new_test_key)
             print(f"   Fresh query result: {fresh_result}")
-            
+
         except Exception as e:
             print(f"❌ Fresh registration failed: {e}")
             if "ModuleAlreadyExists" in str(e):
                 print("   (Module already exists - good, storage is working)")
-        
+
         return True
-        
+
     except Exception as e:
         print(f"❌ Debug session failed: {e}")
         import traceback
         traceback.print_exc()
         return False
-        
+
     finally:
         client.disconnect()
 
@@ -120,14 +119,14 @@ if __name__ == "__main__":
     print("🔗 Storage Query Debugging")
     print("Investigating storage key encoding issues")
     print()
-    
+
     success = asyncio.run(debug_storage_queries())
-    
+
     if success:
         print("\n🎯 DEBUG COMPLETE")
         print("Check output above for storage query insights")
     else:
         print("\n⚠️ DEBUG FAILED")
         print("Storage query issues need further investigation")
-    
+
     exit(0 if success else 1)

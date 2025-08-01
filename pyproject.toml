@@ -17,6 +17,8 @@ dependencies = [
     "aiohttp>=3.12.15",
     "websockets>=15.0.1",
     "pre-commit>=4.2.0",
+    "ruff>=0.12.7",
+    "mypy>=1.17.0",
 ]
 
 [tool.pytest.ini_options]

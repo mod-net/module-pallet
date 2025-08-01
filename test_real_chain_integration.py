@@ -18,7 +18,6 @@ Prerequisites:
 import asyncio
 import json
 import sys
-import time
 from pathlib import Path
 
 # Add paths for imports
@@ -28,7 +27,8 @@ sys.path.insert(0, str(Path(__file__).parent / "commune-ipfs"))
 from module import TestModule
 
 try:
-    from integration_client import ModuleMetadata, ModuleRegistryClient
+    # Integration client imports (currently unused but kept for future use)
+    import integration_client  # noqa: F401
     HAS_INTEGRATION_CLIENT = True
 except ImportError:
     print("⚠️ Integration client not available - will test with direct HTTP calls")
@@ -49,29 +49,29 @@ class RealChainIntegrationTest:
     """
     Real end-to-end integration test with actual blockchain.
     """
-    
+
     def __init__(self):
         self.substrate_url = "ws://127.0.0.1:9944"  # Default Substrate WebSocket
         self.ipfs_backend_url = "http://localhost:8000"  # commune-ipfs backend
         self.test_module = None
         self.session = None
-    
+
     async def __aenter__(self):
         self.session = aiohttp.ClientSession()
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.session:
             await self.session.close()
-    
+
     async def check_substrate_chain(self):
         """Check if Substrate chain is running and accessible."""
         print("🔗 Checking Substrate Chain Connection...")
-        
+
         try:
             # Try to connect to Substrate WebSocket endpoint
             import websockets
-            
+
             async with websockets.connect(self.substrate_url) as websocket:
                 # Send a simple RPC request to get chain info
                 request = {
@@ -80,23 +80,23 @@ class RealChainIntegrationTest:
                     "method": "system_chain",
                     "params": []
                 }
-                
+
                 await websocket.send(json.dumps(request))
                 response = await websocket.recv()
                 chain_info = json.loads(response)
-                
+
                 print(f"✅ Connected to Substrate chain: {chain_info.get('result', 'Unknown')}")
                 return True
-                
+
         except Exception as e:
             print(f"❌ Failed to connect to Substrate chain: {e}")
             print("   Make sure the chain is running: ./target/release/solochain-template-node --dev --tmp")
             return False
-    
+
     async def check_ipfs_backend(self):
         """Check if commune-ipfs backend is running."""
         print("📡 Checking commune-ipfs Backend Connection...")
-        
+
         try:
             async with self.session.get(f"{self.ipfs_backend_url}/health") as response:
                 if response.status == 200:
@@ -106,25 +106,25 @@ class RealChainIntegrationTest:
                 else:
                     print(f"⚠️ Backend responded with status {response.status}")
                     return False
-                    
+
         except Exception as e:
             print(f"❌ Failed to connect to commune-ipfs backend: {e}")
             print("   Make sure backend is running: cd commune-ipfs && uv run python main.py")
             return False
-    
+
     async def test_real_ipfs_storage(self):
         """Test real IPFS metadata storage via commune-ipfs backend."""
         print("\n📦 Testing Real IPFS Metadata Storage...")
-        
+
         # Create test module with real metadata
         self.test_module = TestModule(
             name="real-chain-test-module",
             registry_url=self.ipfs_backend_url
         )
-        
+
         # Get comprehensive metadata
         metadata = self.test_module.get_metadata()
-        
+
         try:
             # Store metadata on IPFS via commune-ipfs backend
             async with self.session.post(
@@ -135,20 +135,20 @@ class RealChainIntegrationTest:
                     "pin": True
                 }
             ) as response:
-                
+
                 if response.status == 200:
                     result = await response.json()
                     cid = result["cid"]
                     print(f"✅ Metadata stored on IPFS with CID: {cid}")
-                    
+
                     # Verify we can retrieve the metadata
                     async with self.session.get(
                         f"{self.ipfs_backend_url}/api/modules/{cid}"
                     ) as get_response:
-                        
+
                         if get_response.status == 200:
                             retrieved_metadata = await get_response.json()
-                            print(f"✅ Successfully retrieved metadata from IPFS")
+                            print("✅ Successfully retrieved metadata from IPFS")
                             print(f"   Module: {retrieved_metadata['metadata']['name']}")
                             print(f"   Version: {retrieved_metadata['metadata']['version']}")
                             return cid
@@ -160,26 +160,26 @@ class RealChainIntegrationTest:
                     print(f"❌ Failed to store metadata on IPFS: {response.status}")
                     print(f"   Error: {error_text}")
                     return None
-                    
+
         except Exception as e:
             print(f"❌ IPFS storage test failed: {e}")
             return None
-    
+
     async def test_substrate_pallet_integration(self, cid: str):
         """Test real Substrate pallet integration with CID storage."""
-        print(f"\n⛓️ Testing Real Substrate Pallet Integration...")
+        print("\n⛓️ Testing Real Substrate Pallet Integration...")
         print(f"   CID to store: {cid}")
-        
+
         try:
             # This would require substrate-interface or polkadot-py
             # For now, we'll simulate the pallet call structure
-            
+
             print("🔧 Setting up Substrate connection...")
-            
+
             # In a real implementation, this would be:
             # from substrateinterface import SubstrateInterface
             # substrate = SubstrateInterface(url=self.substrate_url)
-            
+
             # For demonstration, let's show what the real call would look like:
             pallet_call_structure = {
                 "pallet": "ModuleRegistry",
@@ -189,96 +189,96 @@ class RealChainIntegrationTest:
                     "cid": cid.encode('utf-8')
                 }
             }
-            
-            print(f"📋 Pallet call structure:")
+
+            print("📋 Pallet call structure:")
             print(json.dumps(pallet_call_structure, indent=2))
-            
+
             # TODO: Implement real substrate-interface integration
             print("⚠️ Real Substrate pallet integration requires substrate-interface")
             print("   This would perform an actual extrinsic to store the CID on-chain")
-            
+
             # Mock successful registration for now
             mock_tx_hash = f"0x{'a' * 64}"  # Mock transaction hash
             print(f"🔗 Mock transaction hash: {mock_tx_hash}")
-            
+
             return mock_tx_hash
-            
+
         except Exception as e:
             print(f"❌ Substrate pallet integration failed: {e}")
             return None
-    
+
     async def test_end_to_end_workflow(self):
         """Test the complete end-to-end workflow."""
         print("\n🔄 Testing Complete End-to-End Workflow...")
-        
+
         # Step 1: Create and test module functionality
         print("Step 1: Testing module functionality...")
         if not self.test_module:
             self.test_module = TestModule(name="e2e-test-module")
-        
+
         # Run module tests
         test_results = self.test_module.test()
         if not test_results['summary']['overall_passed']:
             print("❌ Module functionality tests failed")
             return False
-        
+
         print("✅ Module functionality tests passed")
-        
+
         # Step 2: Store metadata on IPFS
         print("\nStep 2: Storing metadata on IPFS...")
         cid = await self.test_real_ipfs_storage()
         if not cid:
             print("❌ IPFS storage failed")
             return False
-        
+
         # Step 3: Register CID on Substrate chain
         print("\nStep 3: Registering CID on Substrate chain...")
         tx_hash = await self.test_substrate_pallet_integration(cid)
         if not tx_hash:
             print("❌ Substrate registration failed")
             return False
-        
+
         # Step 4: Verify end-to-end retrieval
         print("\nStep 4: Testing end-to-end retrieval...")
-        
+
         # In a real implementation, we would:
         # 1. Query the Substrate chain for the CID using the public key
         # 2. Retrieve metadata from IPFS using the CID
         # 3. Verify the metadata matches what we stored
-        
+
         print("✅ End-to-end workflow completed successfully!")
         print(f"   📦 IPFS CID: {cid}")
         print(f"   ⛓️ Transaction Hash: {tx_hash}")
-        
+
         return True
-    
+
     async def run_comprehensive_test(self):
         """Run comprehensive real chain integration tests."""
         print("🚀 Real Chain Integration Test Suite")
         print("=" * 50)
         print("Testing with ACTUAL blockchain and IPFS integration")
         print()
-        
+
         # Check prerequisites
         substrate_ok = await self.check_substrate_chain()
         ipfs_backend_ok = await self.check_ipfs_backend()
-        
+
         if not substrate_ok:
             print("\n❌ Substrate chain is not running or accessible")
             print("   Start with: ./target/release/solochain-template-node --dev --tmp")
             return False
-        
+
         if not ipfs_backend_ok:
             print("\n❌ commune-ipfs backend is not running or accessible")
             print("   Start with: cd commune-ipfs && uv run python main.py")
             return False
-        
+
         print("\n✅ All prerequisites are running!")
-        
+
         # Run the comprehensive test
         try:
             success = await self.test_end_to_end_workflow()
-            
+
             if success:
                 print("\n" + "=" * 50)
                 print("🎉 REAL CHAIN INTEGRATION TEST PASSED!")
@@ -294,9 +294,9 @@ class RealChainIntegrationTest:
             else:
                 print("\n❌ Real chain integration test failed")
                 print("   Check the error messages above for details")
-            
+
             return success
-            
+
         except Exception as e:
             print(f"\n❌ Test suite failed with error: {e}")
             import traceback
@@ -310,17 +310,17 @@ async def main():
         # Install required dependencies
         print("📦 Checking dependencies...")
         try:
-            import websockets
+            import websockets  # noqa: F401
         except ImportError:
             print("Installing websockets...")
             import subprocess
             subprocess.run(["uv", "add", "websockets"], check=True)
-        
+
         # Run the real integration test
         async with RealChainIntegrationTest() as test_suite:
             success = await test_suite.run_comprehensive_test()
             return success
-            
+
     except Exception as e:
         print(f"❌ Test execution failed: {e}")
         import traceback
@@ -332,9 +332,9 @@ if __name__ == "__main__":
     print("🔗 Real Chain Integration Test")
     print("Testing with actual Substrate chain and IPFS")
     print()
-    
+
     success = asyncio.run(main())
-    
+
     if success:
         print("\n🎯 CONCLUSION:")
         print("Real end-to-end integration is working!")
@@ -342,5 +342,5 @@ if __name__ == "__main__":
     else:
         print("\n⚠️ CONCLUSION:")
         print("Real integration test revealed issues that need to be addressed.")
-    
+
     sys.exit(0 if success else 1)
