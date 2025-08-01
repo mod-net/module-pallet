@@ -1,7 +1,6 @@
 use crate as pallet_module_registry;
 use frame_support::{
-    derive_impl,
-    parameter_types,
+    derive_impl, parameter_types,
     traits::{ConstU16, ConstU64},
 };
 use sp_core::H256;
@@ -62,5 +61,8 @@ impl pallet_module_registry::Config for Test {
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-    frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+    frame_system::GenesisConfig::<Test>::default()
+        .build_storage()
+        .unwrap()
+        .into()
 }

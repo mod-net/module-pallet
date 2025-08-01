@@ -154,11 +154,7 @@ pub mod pallet {
         /// * `ModuleAlreadyExists` - If a module with this key already exists
         #[pallet::call_index(0)]
         #[pallet::weight(T::WeightInfo::register_module())]
-        pub fn register_module(
-            origin: OriginFor<T>,
-            key: Vec<u8>,
-            cid: Vec<u8>,
-        ) -> DispatchResult {
+        pub fn register_module(origin: OriginFor<T>, key: Vec<u8>, cid: Vec<u8>) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
             // Validate inputs
@@ -166,9 +162,9 @@ pub mod pallet {
             Self::validate_cid(&cid)?;
 
             // Convert to bounded vectors
-            let bounded_key: BoundedVec<u8, T::MaxKeyLength> = 
+            let bounded_key: BoundedVec<u8, T::MaxKeyLength> =
                 key.try_into().map_err(|_| Error::<T>::KeyTooLong)?;
-            let bounded_cid: BoundedVec<u8, T::MaxCidLength> = 
+            let bounded_cid: BoundedVec<u8, T::MaxCidLength> =
                 cid.try_into().map_err(|_| Error::<T>::CidTooLong)?;
 
             // Check if module already exists
@@ -205,11 +201,7 @@ pub mod pallet {
         /// * `InvalidCidFormat` - If the IPFS CID format is invalid
         #[pallet::call_index(1)]
         #[pallet::weight(T::WeightInfo::update_module())]
-        pub fn update_module(
-            origin: OriginFor<T>,
-            key: Vec<u8>,
-            cid: Vec<u8>,
-        ) -> DispatchResult {
+        pub fn update_module(origin: OriginFor<T>, key: Vec<u8>, cid: Vec<u8>) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
             // Validate inputs
@@ -217,9 +209,9 @@ pub mod pallet {
             Self::validate_cid(&cid)?;
 
             // Convert to bounded vectors
-            let bounded_key: BoundedVec<u8, T::MaxKeyLength> = 
+            let bounded_key: BoundedVec<u8, T::MaxKeyLength> =
                 key.try_into().map_err(|_| Error::<T>::KeyTooLong)?;
-            let bounded_cid: BoundedVec<u8, T::MaxCidLength> = 
+            let bounded_cid: BoundedVec<u8, T::MaxCidLength> =
                 cid.try_into().map_err(|_| Error::<T>::CidTooLong)?;
 
             // Check if module exists
@@ -254,17 +246,14 @@ pub mod pallet {
         /// * `InvalidKeyFormat` - If the public key format is invalid
         #[pallet::call_index(2)]
         #[pallet::weight(T::WeightInfo::remove_module())]
-        pub fn remove_module(
-            origin: OriginFor<T>,
-            key: Vec<u8>,
-        ) -> DispatchResult {
+        pub fn remove_module(origin: OriginFor<T>, key: Vec<u8>) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
             // Validate input
             Self::validate_key(&key)?;
 
             // Convert to bounded vector
-            let bounded_key: BoundedVec<u8, T::MaxKeyLength> = 
+            let bounded_key: BoundedVec<u8, T::MaxKeyLength> =
                 key.try_into().map_err(|_| Error::<T>::KeyTooLong)?;
 
             // Check if module exists
@@ -304,7 +293,10 @@ pub mod pallet {
             ensure!(!key.is_empty(), Error::<T>::EmptyKey);
 
             // Check length constraints
-            ensure!(key.len() <= T::MaxKeyLength::get() as usize, Error::<T>::KeyTooLong);
+            ensure!(
+                key.len() <= T::MaxKeyLength::get() as usize,
+                Error::<T>::KeyTooLong
+            );
 
             // Basic format validation for common key types:
             // - Ed25519: 32 bytes
@@ -315,7 +307,10 @@ pub mod pallet {
                 20 | 32 | 64 => Ok(()),
                 _ => {
                     // Allow other lengths for flexibility, but they should be reasonable
-                    ensure!(key.len() >= 16 && key.len() <= 128, Error::<T>::InvalidKeyFormat);
+                    ensure!(
+                        key.len() >= 16 && key.len() <= 128,
+                        Error::<T>::InvalidKeyFormat
+                    );
                     Ok(())
                 }
             }
@@ -337,24 +332,29 @@ pub mod pallet {
             ensure!(!cid.is_empty(), Error::<T>::EmptyCid);
 
             // Check length constraints
-            ensure!(cid.len() <= T::MaxCidLength::get() as usize, Error::<T>::CidTooLong);
+            ensure!(
+                cid.len() <= T::MaxCidLength::get() as usize,
+                Error::<T>::CidTooLong
+            );
 
             // Basic CID format validation:
             // CIDv0: starts with "Qm" and is 46 characters (base58)
             // CIDv1: starts with specific multibase prefixes
             // For simplicity, we'll do basic length and character checks
-            
+
             // Convert to string for validation
-            let cid_str = core::str::from_utf8(cid)
-                .map_err(|_| Error::<T>::InvalidCidFormat)?;
+            let cid_str = core::str::from_utf8(cid).map_err(|_| Error::<T>::InvalidCidFormat)?;
 
             // Check minimum and maximum lengths
-            ensure!(cid_str.len() >= 32 && cid_str.len() <= 128, Error::<T>::InvalidCidFormat);
+            ensure!(
+                cid_str.len() >= 32 && cid_str.len() <= 128,
+                Error::<T>::InvalidCidFormat
+            );
 
             // Basic character validation (alphanumeric + some special chars)
-            let valid_chars = cid_str.chars().all(|c| {
-                c.is_ascii_alphanumeric() || c == '-' || c == '_'
-            });
+            let valid_chars = cid_str
+                .chars()
+                .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_');
             ensure!(valid_chars, Error::<T>::InvalidCidFormat);
 
             Ok(())
@@ -371,8 +371,7 @@ pub mod pallet {
         /// * `Some(cid)` if the module exists
         /// * `None` if the module doesn't exist
         pub fn get_module(key: &[u8]) -> Option<BoundedVec<u8, T::MaxCidLength>> {
-            let bounded_key: BoundedVec<u8, T::MaxKeyLength> = 
-                key.to_vec().try_into().ok()?;
+            let bounded_key: BoundedVec<u8, T::MaxKeyLength> = key.to_vec().try_into().ok()?;
             Modules::<T>::get(&bounded_key)
         }
     }

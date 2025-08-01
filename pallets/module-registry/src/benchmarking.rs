@@ -69,5 +69,9 @@ mod benchmarks {
         assert!(!Modules::<T>::contains_key(&bounded_key));
     }
 
-    impl_benchmark_test_suite!(ModuleRegistry, crate::mock::new_test_ext(), crate::mock::Test);
+    impl_benchmark_test_suite!(
+        ModuleRegistry,
+        crate::mock::new_test_ext(),
+        crate::mock::Test
+    );
 }

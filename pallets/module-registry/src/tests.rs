@@ -22,7 +22,7 @@ fn register_module_works() {
         // Check that the module was stored
         let bounded_key: BoundedVec<u8, MaxKeyLength> = key.try_into().unwrap();
         let bounded_cid: BoundedVec<u8, MaxCidLength> = cid.try_into().unwrap();
-        
+
         assert_eq!(
             ModuleRegistry::modules(&bounded_key),
             Some(bounded_cid.clone())
@@ -55,11 +55,7 @@ fn register_module_fails_with_duplicate_key() {
 
         // Try to register the same key again
         assert_noop!(
-            ModuleRegistry::register_module(
-                RuntimeOrigin::signed(1),
-                key,
-                cid
-            ),
+            ModuleRegistry::register_module(RuntimeOrigin::signed(1), key, cid),
             Error::<Test>::ModuleAlreadyExists
         );
     });
@@ -72,11 +68,7 @@ fn register_module_fails_with_empty_key() {
         let cid = b"QmTestCID123456789012345678901234".to_vec();
 
         assert_noop!(
-            ModuleRegistry::register_module(
-                RuntimeOrigin::signed(1),
-                key,
-                cid
-            ),
+            ModuleRegistry::register_module(RuntimeOrigin::signed(1), key, cid),
             Error::<Test>::EmptyKey
         );
     });
@@ -89,11 +81,7 @@ fn register_module_fails_with_empty_cid() {
         let cid = vec![];
 
         assert_noop!(
-            ModuleRegistry::register_module(
-                RuntimeOrigin::signed(1),
-                key,
-                cid
-            ),
+            ModuleRegistry::register_module(RuntimeOrigin::signed(1), key, cid),
             Error::<Test>::EmptyCid
         );
     });
@@ -106,11 +94,7 @@ fn register_module_fails_with_invalid_key_length() {
         let cid = b"QmTestCID123456789012345678901234".to_vec();
 
         assert_noop!(
-            ModuleRegistry::register_module(
-                RuntimeOrigin::signed(1),
-                key,
-                cid
-            ),
+            ModuleRegistry::register_module(RuntimeOrigin::signed(1), key, cid),
             Error::<Test>::InvalidKeyFormat
         );
     });
@@ -123,11 +107,7 @@ fn register_module_fails_with_invalid_cid_length() {
         let cid = b"short".to_vec(); // Too short (< 32 bytes)
 
         assert_noop!(
-            ModuleRegistry::register_module(
-                RuntimeOrigin::signed(1),
-                key,
-                cid
-            ),
+            ModuleRegistry::register_module(RuntimeOrigin::signed(1), key, cid),
             Error::<Test>::InvalidCidFormat
         );
     });
@@ -159,7 +139,7 @@ fn update_module_works() {
         // Check that the module was updated
         let bounded_key: BoundedVec<u8, MaxKeyLength> = key.try_into().unwrap();
         let bounded_cid2: BoundedVec<u8, MaxCidLength> = cid2.try_into().unwrap();
-        
+
         assert_eq!(
             ModuleRegistry::modules(&bounded_key),
             Some(bounded_cid2.clone())
@@ -184,11 +164,7 @@ fn update_module_fails_with_nonexistent_key() {
         let cid = b"QmTestCID123456789012345678901234".to_vec();
 
         assert_noop!(
-            ModuleRegistry::update_module(
-                RuntimeOrigin::signed(1),
-                key,
-                cid
-            ),
+            ModuleRegistry::update_module(RuntimeOrigin::signed(1), key, cid),
             Error::<Test>::ModuleNotFound
         );
     });
@@ -236,10 +212,7 @@ fn remove_module_fails_with_nonexistent_key() {
         let key = b"test_ed25519_key_32_bytes_long!!".to_vec();
 
         assert_noop!(
-            ModuleRegistry::remove_module(
-                RuntimeOrigin::signed(1),
-                key
-            ),
+            ModuleRegistry::remove_module(RuntimeOrigin::signed(1), key),
             Error::<Test>::ModuleNotFound
         );
     });
