@@ -2,13 +2,13 @@
 //!
 //! A Substrate pallet for managing a decentralized module registry with multi-chain support.
 //! This pallet provides a simple key-value storage system where:
-//! - Keys are public keys in various formats (Ed25519, Ethereum, Solana) stored as Vec<u8>
-//! - Values are IPFS CIDs pointing to module metadata stored as Vec<u8>
+//! - Keys are public keys in various formats (Ed25519, Ethereum, Solana) stored as `Vec<u8>`
+//! - Values are IPFS CIDs pointing to module metadata stored as `Vec<u8>`
 //!
 //! ## Overview
 //!
 //! This pallet implements:
-//! - Multi-chain public key support via flexible Vec<u8> keys
+//! - Multi-chain public key support via flexible `Vec<u8>` keys
 //! - IPFS CID storage for off-chain metadata references
 //! - Content-addressable metadata via IPFS
 //! - Reduced on-chain storage costs (only CIDs stored)
@@ -17,8 +17,8 @@
 //! ## Storage Design
 //!
 //! The core storage is a simple StorageMap:
-//! - Key: Vec<u8> - Public key in various formats (flexible to support all chains)
-//! - Value: Vec<u8> - IPFS CID pointing to module metadata
+//! - Key: `Vec<u8>` - Public key in various formats (flexible to support all chains)
+//! - Value: `Vec<u8>` - IPFS CID pointing to module metadata
 //!
 //! ## Functionality
 //!
@@ -145,8 +145,8 @@ pub mod pallet {
         ///
         /// # Arguments
         /// * `origin` - The origin of the call (must be signed)
-        /// * `key` - The public key to use as identifier (Vec<u8>)
-        /// * `cid` - The IPFS CID of the module metadata (Vec<u8>)
+        /// * `key` - The public key to use as identifier (`Vec<u8>`)
+        /// * `cid` - The IPFS CID of the module metadata (`Vec<u8>`)
         ///
         /// # Errors
         /// * `InvalidKeyFormat` - If the public key format is invalid
@@ -192,8 +192,8 @@ pub mod pallet {
         ///
         /// # Arguments
         /// * `origin` - The origin of the call (must be signed)
-        /// * `key` - The public key identifier (Vec<u8>)
-        /// * `cid` - The new IPFS CID of the module metadata (Vec<u8>)
+        /// * `key` - The public key identifier (`Vec<u8>`)
+        /// * `cid` - The new IPFS CID of the module metadata (`Vec<u8>`)
         ///
         /// # Errors
         /// * `ModuleNotFound` - If no module exists with this key
@@ -239,7 +239,7 @@ pub mod pallet {
         ///
         /// # Arguments
         /// * `origin` - The origin of the call (must be signed)
-        /// * `key` - The public key identifier (Vec<u8>)
+        /// * `key` - The public key identifier (`Vec<u8>`)
         ///
         /// # Errors
         /// * `ModuleNotFound` - If no module exists with this key
