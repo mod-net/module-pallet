@@ -22,7 +22,7 @@ mod benchmarks {
         register_module(RawOrigin::Signed(caller), key, cid);
 
         // Verify that the module was registered
-        let bounded_key = vec![1u8; 32].try_into().unwrap();
+        let bounded_key: BoundedVec<u8, T::MaxKeyLength> = vec![1u8; 32].try_into().unwrap();
         assert!(Modules::<T>::contains_key(&bounded_key));
     }
 
@@ -44,7 +44,7 @@ mod benchmarks {
         update_module(RawOrigin::Signed(caller), key.clone(), cid2);
 
         // Verify that the module was updated
-        let bounded_key = key.try_into().unwrap();
+        let bounded_key: BoundedVec<u8, T::MaxKeyLength> = key.try_into().unwrap();
         assert!(Modules::<T>::contains_key(&bounded_key));
     }
 
@@ -65,7 +65,7 @@ mod benchmarks {
         remove_module(RawOrigin::Signed(caller), key.clone());
 
         // Verify that the module was removed
-        let bounded_key = key.try_into().unwrap();
+        let bounded_key: BoundedVec<u8, T::MaxKeyLength> = key.try_into().unwrap();
         assert!(!Modules::<T>::contains_key(&bounded_key));
     }
 
