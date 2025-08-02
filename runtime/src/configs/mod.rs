@@ -162,3 +162,13 @@ impl pallet_template::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
+
+/// Configure the ModuleRegistry pallet for real blockchain transactions.
+impl pallet_module_registry::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_module_registry::weights::SubstrateWeight<Runtime>;
+    /// Maximum length for public keys (supports Ed25519, Ethereum, Solana keys)
+    type MaxKeyLength = ConstU32<64>;
+    /// Maximum length for IPFS CIDs (typical CID is ~46 characters)
+    type MaxCidLength = ConstU32<64>;
+}
