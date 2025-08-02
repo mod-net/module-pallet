@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 import aiohttp
-from config import get_config
+from .config import get_config
 
 # Add paths for imports
 sys.path.insert(0, str(Path(__file__).parent / "modules" / "test_module"))

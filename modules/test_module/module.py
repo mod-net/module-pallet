@@ -17,7 +17,7 @@ import time
 from datetime import datetime
 from typing import Any
 
-from config import get_config
+from scripts.config import get_config
 
 # Import commune if available, otherwise create a minimal mock
 try:

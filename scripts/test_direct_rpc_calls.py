@@ -15,7 +15,7 @@ import asyncio
 from typing import Any
 
 import aiohttp
-from config import get_config
+from .config import get_config
 
 
 class DirectRPCClient:

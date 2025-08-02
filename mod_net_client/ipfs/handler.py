@@ -3,7 +3,7 @@
 from typing import Any
 
 import ipfshttpclient
-from config import get_config
+from scripts.config import get_config
 
 
 class IPFSHandler:

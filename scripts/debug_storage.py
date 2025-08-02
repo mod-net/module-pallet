@@ -10,7 +10,7 @@ This script focuses on debugging the storage query issues by:
 
 import asyncio
 
-from config import get_config
+from .config import get_config
 from substrate_pallet_client import SubstratePalletClient
 
 

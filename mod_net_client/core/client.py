@@ -1,7 +1,7 @@
 """Core client for interacting with the module registry."""
 
 
-from config import get_config
+from scripts.config import get_config
 from substrateinterface import SubstrateInterface
 
 

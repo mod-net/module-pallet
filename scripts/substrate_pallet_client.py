@@ -18,7 +18,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import Any
 
-from config import get_config
+from .config import get_config
 from substrate_config import substrate_config
 
 try:
