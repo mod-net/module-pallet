@@ -18,8 +18,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from scripts.config import get_config
-from module import TestModule
+# Local imports after path modification - isort:skip
+from module import TestModule  # noqa: E402
+
+from scripts.config import get_config  # noqa: E402
 
 
 async def test_basic_functionality():
@@ -41,24 +43,24 @@ async def test_basic_functionality():
     # Test compute function
     compute_result = module.compute("add", 5, 10, 15)
     print(f"Compute (add 5+10+15): {compute_result['result']}")
-    assert compute_result['result'] == 30, "Addition test failed"
+    assert compute_result["result"] == 30, "Addition test failed"
 
     # Test fibonacci
     fib_result = module.fibonacci(7)
     print(f"Fibonacci(7): {fib_result['sequence']}")
     expected_fib = [0, 1, 1, 2, 3, 5, 8]
-    assert fib_result['sequence'] == expected_fib, "Fibonacci test failed"
+    assert fib_result["sequence"] == expected_fib, "Fibonacci test failed"
 
     # Test prime check
     prime_result = module.prime_check([7, 8, 9, 10, 11])
-    prime_numbers = [r['number'] for r in prime_result['results'] if r['is_prime']]
+    prime_numbers = [r["number"] for r in prime_result["results"] if r["is_prime"]]
     print(f"Prime numbers in [7,8,9,10,11]: {prime_numbers}")
     assert prime_numbers == [7, 11], "Prime check test failed"
 
     # Test data transform
     transform_result = module.data_transform("hello world", "reverse")
     print(f"Reverse 'hello world': {transform_result['result']}")
-    assert transform_result['result'] == "dlrow olleh", "Data transform test failed"
+    assert transform_result["result"] == "dlrow olleh", "Data transform test failed"
 
     print("✅ All basic functionality tests passed!")
     return module
@@ -76,7 +78,7 @@ async def test_forward_mechanism():
         # Test valid forward call
         result = module.forward("compute", "multiply", 3, 4, 5)
         print(f"Forward compute multiply: {result['result']}")
-        assert result['result'] == 60, "Forward multiply test failed"
+        assert result["result"] == 60, "Forward multiply test failed"
 
         # Test invalid function call
         try:
@@ -105,9 +107,9 @@ async def test_health_and_metadata():
     print(f"Health Status: {health['status']}")
     print(f"All Tests Passed: {health['all_tests_passed']}")
 
-    if not health['all_tests_passed']:
+    if not health["all_tests_passed"]:
         print("❌ Health check failed:")
-        for test_name, passed in health['tests'].items():
+        for test_name, passed in health["tests"].items():
             status = "✅" if passed else "❌"
             print(f"  {status} {test_name}")
     else:
@@ -121,8 +123,8 @@ async def test_health_and_metadata():
     print(f"  Description: {metadata['description']}")
     print(f"  Tags: {metadata['tags']}")
 
-    assert metadata['name'] == "health-test-module", "Metadata name mismatch"
-    assert 'runtime_info' in metadata, "Missing runtime info in metadata"
+    assert metadata["name"] == "health-test-module", "Metadata name mismatch"
+    assert "runtime_info" in metadata, "Missing runtime info in metadata"
 
     print("✅ Health and metadata tests passed!")
 
@@ -134,15 +136,14 @@ async def test_registry_integration():
 
     config = get_config()
     module = TestModule(
-        name="registry-test-module",
-        registry_url=config.test.test_module_registry_url
+        name="registry-test-module", registry_url=config.test.test_module_registry_url
     )
 
     # Test registry registration (mock)
     registration_result = await module.register_in_registry()
     print(f"Registration Status: {registration_result['status']}")
 
-    if registration_result['status'] == 'registered':
+    if registration_result["status"] == "registered":
         print(f"✅ Module registered with CID: {registration_result['cid']}")
         print(f"Registry URL: {registration_result['registry_url']}")
     else:
@@ -165,23 +166,23 @@ async def test_comprehensive_module_test():
     test_results = module.test()
 
     print("\n📊 Test Results Summary:")
-    summary = test_results['summary']
+    summary = test_results["summary"]
     print(f"  Total Tests: {summary['total_tests']}")
     print(f"  Passed: {summary['passed_tests']}")
     print(f"  Failed: {summary['failed_tests']}")
     print(f"  Success Rate: {summary['success_rate']:.1%}")
 
-    if summary['overall_passed']:
+    if summary["overall_passed"]:
         print("✅ All comprehensive tests passed!")
     else:
         print("❌ Some comprehensive tests failed:")
-        for test_name, test_result in test_results['tests'].items():
-            status = "✅" if test_result.get('passed', False) else "❌"
+        for test_name, test_result in test_results["tests"].items():
+            status = "✅" if test_result.get("passed", False) else "❌"
             print(f"  {status} {test_name}")
-            if 'error' in test_result:
+            if "error" in test_result:
                 print(f"      Error: {test_result['error']}")
 
-    return test_results['summary']['overall_passed']
+    return test_results["summary"]["overall_passed"]
 
 
 async def test_performance_benchmarks():
@@ -209,12 +210,12 @@ async def test_performance_benchmarks():
     operations = [
         ("add", list(range(1000))),
         ("multiply", [2, 3, 4, 5]),
-        ("factorial", [10])
+        ("factorial", [10]),
     ]
 
     for op, args in operations:
         result = module.compute(op, *args)
-        if 'duration' in result:
+        if "duration" in result:
             print(f"  {op}: {result['duration']:.4f}s")
 
     print("✅ Performance benchmarks completed!")
@@ -238,7 +239,7 @@ async def demonstrate_real_world_usage():
 
     # Check which numbers are prime
     prime_result = module.prime_check(raw_data)
-    primes = [r['number'] for r in prime_result['results'] if r['is_prime']]
+    primes = [r["number"] for r in prime_result["results"] if r["is_prime"]]
     print(f"  Prime numbers: {primes}")
 
     # Calculate some statistics
@@ -289,7 +290,9 @@ async def main():
         if comprehensive_passed:
             print("✅ All tests passed successfully!")
             print("\n💡 Next Steps:")
-            print("   1. Start commune-ipfs backend: cd commune-ipfs && uv run python main.py")
+            print(
+                "   1. Start commune-ipfs backend: cd commune-ipfs && uv run python main.py"
+            )
             print("   2. Run integration_client.py for real IPFS integration")
             print("   3. Test with actual Substrate pallet calls")
             print("   4. Deploy module to commune network")
@@ -301,6 +304,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ Integration test suite failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

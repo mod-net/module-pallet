@@ -65,12 +65,12 @@ graph TD
 2. Create a values file (`values-prod.yaml`):
    ```yaml
    replicaCount: 3
-   
+
    node:
      chain: production
      basePath: /data
      nodeKey: "YOUR_NODE_KEY"
-     
+
      resources:
        limits:
          cpu: 4
@@ -78,12 +78,12 @@ graph TD
        requests:
          cpu: 2
          memory: 8Gi
-   
+
    monitoring:
      enabled: true
      prometheus:
        enabled: true
-   
+
    ipfs:
      cluster:
        enabled: true
@@ -108,7 +108,7 @@ graph TD
    [Unit]
    Description=Mod-Net Node
    After=network.target
-   
+
    [Service]
    User=modnet
    Group=modnet
@@ -122,7 +122,7 @@ graph TD
      --name "MyNode"
    Restart=always
    RestartSec=3
-   
+
    [Install]
    WantedBy=multi-user.target
    ```
@@ -183,7 +183,7 @@ scrape_configs:
     static_configs:
       - targets: ['node-1:9615', 'node-2:9615', 'node-3:9615']
     metrics_path: /metrics
-    
+
   - job_name: 'ipfs'
     static_configs:
       - targets: ['ipfs-1:5001', 'ipfs-2:5001', 'ipfs-3:5001']
@@ -222,7 +222,7 @@ groups:
    ```bash
    # Create snapshot
    ./target/release/node-template export-blocks --chain=production > chain-$(date +%s).json
-   
+
    # Backup database
    cp -r /data/chains/modnet/db/ /backup/chain-db-$(date +%Y%m%d)
    ```
@@ -240,7 +240,7 @@ groups:
    ```bash
    # Restore from snapshot
    ./target/release/node-template import-blocks --chain=production chain-snapshot.json
-   
+
    # Or sync from genesis
    ./target/release/node-template --chain=production --sync=warp
    ```

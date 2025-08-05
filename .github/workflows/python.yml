@@ -29,10 +29,10 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install UV
         run: pip install uv
-      
+
       - name: Install dependencies
         run: |
           cd commune-ipfs
@@ -46,19 +46,19 @@ jobs:
           cd commune-ipfs
           source .venv/bin/activate
           black . --check
-        
+
       - name: Run isort
         run: |
           cd commune-ipfs
           source .venv/bin/activate
           isort . --check-only --profile black
-        
+
       - name: Run Ruff
         run: |
           cd commune-ipfs
           source .venv/bin/activate
           ruff check .
-        
+
       - name: Run MyPy
         run: |
           cd commune-ipfs
@@ -77,10 +77,10 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          
+
       - name: Install UV
         run: pip install uv
-      
+
       - name: Install dependencies
         run: |
           cd commune-ipfs

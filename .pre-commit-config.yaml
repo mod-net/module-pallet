@@ -1,0 +1,66 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-yaml
+    -   id: check-added-large-files
+        args: [--maxkb=1024]
+    -   id: check-merge-conflict
+    -   id: check-symlinks
+    -   id: mixed-line-ending
+        args: [--fix=lf]
+    -   id: check-case-conflict
+    -   id: check-json
+    -   id: check-toml
+
+-   repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+    -   id: black
+        language_version: python3
+        types_or: [python, pyi]
+        args: [--line-length=88]
+
+-   repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.14
+    hooks:
+    -   id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+
+-   repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+    -   id: isort
+        name: isort (python)
+        types: [python]
+        args: [--profile=black]
+
+# Rust tooling is handled through rustup and cargo directly
+# Install required components:
+# rustup component add rustfmt clippy
+-   repo: local
+    hooks:
+    -   id: rustfmt
+        name: rustfmt
+        entry: rustfmt --edition=2021 --check
+        language: system
+        types: [rust]
+        pass_filenames: true
+        files: '.*\.rs$'
+
+    -   id: cargo-check
+        name: cargo check
+        entry: cargo check --all-targets --all-features
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+    -   id: cargo-clippy
+        name: cargo clippy
+        entry: bash -c 'cargo clippy -- -D warnings'
+        language: system
+        types: [rust]
+        pass_filenames: false

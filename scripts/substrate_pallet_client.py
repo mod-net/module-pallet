@@ -18,25 +18,30 @@ import subprocess
 from dataclasses import dataclass
 from typing import Any
 
-from .config import get_config
 from substrate_config import substrate_config
+
+from .config import get_config
 
 try:
     from substrateinterface import Keypair, SubstrateInterface
     from substrateinterface.exceptions import SubstrateRequestException
+
     HAS_SUBSTRATE_INTERFACE = True
 except ImportError:
     print("⚠️ substrate-interface not available. Installing...")
     import subprocess
+
     subprocess.run(["uv", "add", "substrate-interface"], check=True)
     from substrateinterface import Keypair, SubstrateInterface
     from substrateinterface.exceptions import SubstrateRequestException
+
     HAS_SUBSTRATE_INTERFACE = True
 
 
 @dataclass
 class ModuleRegistration:
     """Data structure for module registration on-chain."""
+
     public_key: str
     cid: str
     block_hash: str | None = None
@@ -52,7 +57,9 @@ class SubstratePalletClient:
     Performs actual blockchain transactions that appear in block logs.
     """
 
-    def __init__(self, substrate_url: str | None = None, keypair_seed: str | None = None):
+    def __init__(
+        self, substrate_url: str | None = None, keypair_seed: str | None = None
+    ):
         """
         Initialize the Substrate pallet client.
 
@@ -81,8 +88,8 @@ class SubstratePalletClient:
             # Prioritize WebSocket for transaction monitoring
             connection_urls = substrate_config.get_connection_urls()
             # Reorder to try WebSocket first for transaction support
-            ws_urls = [url for url in connection_urls if url.startswith('ws')]
-            http_urls = [url for url in connection_urls if url.startswith('http')]
+            ws_urls = [url for url in connection_urls if url.startswith("ws")]
+            http_urls = [url for url in connection_urls if url.startswith("http")]
             connection_urls = ws_urls + http_urls
 
             # Print configuration for debugging
@@ -144,7 +151,7 @@ class SubstratePalletClient:
             "runtime_version": self.substrate.runtime_version,
             "current_block": chain_head,
             "block_number": block_number,
-            "keypair_address": self.keypair.ss58_address if self.keypair else None
+            "keypair_address": self.keypair.ss58_address if self.keypair else None,
         }
 
     def register_module(self, public_key: str, cid: str) -> ModuleRegistration:
@@ -169,63 +176,57 @@ class SubstratePalletClient:
             # Prepare the extrinsic call
             # Convert hex string to bytes for the key
             if isinstance(public_key, str):
-                if public_key.startswith('0x'):
+                if public_key.startswith("0x"):
                     key_bytes = bytes.fromhex(public_key[2:])
                 else:
-                    key_bytes = public_key.encode('utf-8')
+                    key_bytes = public_key.encode("utf-8")
             else:
                 key_bytes = bytes(public_key)
 
             # Convert CID string to bytes
-            cid_bytes = cid.encode('utf-8')
+            cid_bytes = cid.encode("utf-8")
 
             call = self.substrate.compose_call(
-                call_module='ModuleRegistry',
-                call_function='register_module',
-                call_params={
-                    'key': key_bytes,
-                    'cid': cid_bytes
-                }
+                call_module="ModuleRegistry",
+                call_function="register_module",
+                call_params={"key": key_bytes, "cid": cid_bytes},
             )
 
             print("🔧 Composed extrinsic call: ModuleRegistry::register_module")
 
             # Create and submit the extrinsic
             extrinsic = self.substrate.create_signed_extrinsic(
-                call=call,
-                keypair=self.keypair
+                call=call, keypair=self.keypair
             )
 
             print(f"✍️ Signed extrinsic with keypair: {self.keypair.ss58_address}")
 
             # Submit the extrinsic (use simple submission for HTTP connections)
-            if self.substrate.url.startswith('ws'):
+            if self.substrate.url.startswith("ws"):
                 # WebSocket connection - can wait for inclusion
                 receipt = self.substrate.submit_extrinsic(
-                    extrinsic,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True
+                    extrinsic, wait_for_inclusion=True, wait_for_finalization=True
                 )
             else:
                 # HTTP connection - submit without waiting
                 extrinsic_hash = self.substrate.submit_extrinsic(extrinsic)
                 receipt = {
-                    'extrinsic_hash': extrinsic_hash,
-                    'block_hash': None,
-                    'finalized': False
+                    "extrinsic_hash": extrinsic_hash,
+                    "block_hash": None,
+                    "finalized": False,
                 }
 
             print("📡 Extrinsic submitted to chain")
 
             # Handle both dict and object receipt formats
             if isinstance(receipt, dict):
-                extrinsic_hash = receipt.get('extrinsic_hash', 'N/A')
-                block_hash = receipt.get('block_hash', 'N/A')
-                finalized = receipt.get('finalized', False)
+                extrinsic_hash = receipt.get("extrinsic_hash", "N/A")
+                block_hash = receipt.get("block_hash", "N/A")
+                finalized = receipt.get("finalized", False)
             else:
-                extrinsic_hash = getattr(receipt, 'extrinsic_hash', 'N/A')
-                block_hash = getattr(receipt, 'block_hash', 'N/A')
-                finalized = getattr(receipt, 'finalized', False)
+                extrinsic_hash = getattr(receipt, "extrinsic_hash", "N/A")
+                block_hash = getattr(receipt, "block_hash", "N/A")
+                finalized = getattr(receipt, "finalized", False)
 
             print(f"   Extrinsic Hash: {extrinsic_hash}")
             print(f"   Block Hash: {block_hash}")
@@ -234,9 +235,9 @@ class SubstratePalletClient:
             # Check if the extrinsic was successful
             is_success = False
             if isinstance(receipt, dict):
-                is_success = receipt.get('finalized', False) or extrinsic_hash != 'N/A'
+                is_success = receipt.get("finalized", False) or extrinsic_hash != "N/A"
             else:
-                is_success = getattr(receipt, 'is_success', False)
+                is_success = getattr(receipt, "is_success", False)
 
             if is_success:
                 print("✅ Module registered successfully!")
@@ -245,19 +246,24 @@ class SubstratePalletClient:
                 for event in receipt.triggered_events:
                     print(f"   📋 Event: {event.module_id}::{event.event_id}")
 
-                    if event.module_id == 'ModuleRegistry' and event.event_id == 'ModuleRegistered':
+                    if (
+                        event.module_id == "ModuleRegistry"
+                        and event.event_id == "ModuleRegistered"
+                    ):
                         print("   ✅ ModuleRegistered event found!")
                         print(f"   📋 Event attributes: {event.attributes}")
                         # Events will be added to registration object below
                         break
                 else:
-                    print("🎉 Extrinsic submitted - check blockchain for ModuleRegistered event")
+                    print(
+                        "🎉 Extrinsic submitted - check blockchain for ModuleRegistered event"
+                    )
             else:
                 print("❌ Module registration failed")
                 if isinstance(receipt, dict):
-                    error_msg = receipt.get('error_message', 'Unknown error')
+                    error_msg = receipt.get("error_message", "Unknown error")
                 else:
-                    error_msg = getattr(receipt, 'error_message', 'Unknown error')
+                    error_msg = getattr(receipt, "error_message", "Unknown error")
                 print(f"   Error: {error_msg}")
 
             return ModuleRegistration(
@@ -265,8 +271,8 @@ class SubstratePalletClient:
                 cid=cid,
                 block_hash=block_hash,
                 extrinsic_hash=extrinsic_hash,
-                block_number=getattr(receipt, 'block_number', None),
-                events=[] if not hasattr(receipt, 'triggered_events') else []
+                block_number=getattr(receipt, "block_number", None),
+                events=[] if not hasattr(receipt, "triggered_events") else [],
             )
 
         except SubstrateRequestException as e:
@@ -295,9 +301,7 @@ class SubstratePalletClient:
             # Use raw string key as proven working in debug script
             # Query the ModuleRegistry storage
             result = self.substrate.query(
-                module='ModuleRegistry',
-                storage_function='Modules',
-                params=[public_key]
+                module="ModuleRegistry", storage_function="Modules", params=[public_key]
             )
 
             print(f"   Raw query result: {result}")
@@ -307,11 +311,11 @@ class SubstratePalletClient:
             if result.value is not None:
                 # Handle different result formats
                 if isinstance(result.value, bytes):
-                    cid = result.value.decode('utf-8')
+                    cid = result.value.decode("utf-8")
                 elif isinstance(result.value, str):
                     cid = result.value
-                elif hasattr(result.value, 'decode'):
-                    cid = result.value.decode('utf-8')
+                elif hasattr(result.value, "decode"):
+                    cid = result.value.decode("utf-8")
                 else:
                     # Try to convert to string
                     cid = str(result.value)
@@ -325,6 +329,7 @@ class SubstratePalletClient:
         except Exception as e:
             print(f"❌ Query failed: {e}")
             import traceback
+
             traceback.print_exc()
             raise
 
@@ -350,59 +355,53 @@ class SubstratePalletClient:
             # Prepare the extrinsic call
             # Convert hex string to bytes for the key
             if isinstance(public_key, str):
-                if public_key.startswith('0x'):
+                if public_key.startswith("0x"):
                     key_bytes = bytes.fromhex(public_key[2:])
                 else:
-                    key_bytes = public_key.encode('utf-8')
+                    key_bytes = public_key.encode("utf-8")
             else:
                 key_bytes = bytes(public_key)
 
             # Convert CID string to bytes
-            cid_bytes = new_cid.encode('utf-8')
+            cid_bytes = new_cid.encode("utf-8")
 
             call = self.substrate.compose_call(
-                call_module='ModuleRegistry',
-                call_function='update_module',
-                call_params={
-                    'key': key_bytes,
-                    'cid': cid_bytes
-                }
+                call_module="ModuleRegistry",
+                call_function="update_module",
+                call_params={"key": key_bytes, "cid": cid_bytes},
             )
 
             # Create and submit the extrinsic
             extrinsic = self.substrate.create_signed_extrinsic(
-                call=call,
-                keypair=self.keypair
+                call=call, keypair=self.keypair
             )
 
             # Submit the extrinsic (use simple submission for HTTP connections)
-            if self.substrate.url.startswith('ws'):
+            if self.substrate.url.startswith("ws"):
                 # WebSocket connection - can wait for inclusion
                 receipt = self.substrate.submit_extrinsic(
-                    extrinsic,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True
+                    extrinsic, wait_for_inclusion=True, wait_for_finalization=True
                 )
             else:
                 # HTTP connection - submit without waiting
                 extrinsic_hash = self.substrate.submit_extrinsic(extrinsic)
                 receipt = {
-                    'extrinsic_hash': extrinsic_hash,
-                    'block_hash': None,
-                    'finalized': False
+                    "extrinsic_hash": extrinsic_hash,
+                    "block_hash": None,
+                    "finalized": False,
                 }
 
             print("📡 Update extrinsic submitted")
 
             # Handle both dict and object receipt formats
             if isinstance(receipt, dict):
-                extrinsic_hash = receipt.get('extrinsic_hash', 'N/A')
-                block_hash = receipt.get('block_hash', 'N/A')
-                finalized = receipt.get('finalized', False)
+                extrinsic_hash = receipt.get("extrinsic_hash", "N/A")
+                block_hash = receipt.get("block_hash", "N/A")
+                finalized = receipt.get("finalized", False)
             else:
-                extrinsic_hash = getattr(receipt, 'extrinsic_hash', 'N/A')
-                block_hash = getattr(receipt, 'block_hash', 'N/A')
-                finalized = getattr(receipt, 'finalized', False)
+                extrinsic_hash = getattr(receipt, "extrinsic_hash", "N/A")
+                block_hash = getattr(receipt, "block_hash", "N/A")
+                finalized = getattr(receipt, "finalized", False)
 
             print(f"   Extrinsic Hash: {extrinsic_hash}")
             print(f"   Block Hash: {block_hash}")
@@ -411,36 +410,40 @@ class SubstratePalletClient:
             # Check if the extrinsic was successful
             is_success = False
             if isinstance(receipt, dict):
-                is_success = receipt.get('finalized', False) or extrinsic_hash != 'N/A'
+                is_success = receipt.get("finalized", False) or extrinsic_hash != "N/A"
             else:
-                is_success = getattr(receipt, 'is_success', False)
+                is_success = getattr(receipt, "is_success", False)
 
             if is_success:
                 print("✅ Module update successful!")
 
                 events = []
-                if hasattr(receipt, 'triggered_events') and receipt.triggered_events:
+                if hasattr(receipt, "triggered_events") and receipt.triggered_events:
                     print(f"📋 {len(receipt.triggered_events)} events triggered")
                     for i, event in enumerate(receipt.triggered_events):
                         try:
                             # Safe event parsing - handle any event structure
-                            module_id = getattr(event, 'module_id', 'Unknown')
-                            event_id = getattr(event, 'event_id', 'Unknown')
+                            module_id = getattr(event, "module_id", "Unknown")
+                            event_id = getattr(event, "event_id", "Unknown")
                             print(f"   Event {i+1}: {module_id}::{event_id}")
                             events.append({"event": f"{module_id}::{event_id}"})
                         except Exception:
-                            print(f"   Event {i+1}: [Event parsing skipped: {type(event)}]")
+                            print(
+                                f"   Event {i+1}: [Event parsing skipped: {type(event)}]"
+                            )
                             events.append({"event": "event_logged"})
                 else:
-                    print("🎉 Extrinsic submitted - check blockchain for ModuleUpdated event")
+                    print(
+                        "🎉 Extrinsic submitted - check blockchain for ModuleUpdated event"
+                    )
 
                 return ModuleRegistration(
                     public_key=public_key,
                     cid=new_cid,
                     block_hash=block_hash,
                     extrinsic_hash=extrinsic_hash,
-                    block_number=getattr(receipt, 'block_number', None),
-                    events=events
+                    block_number=getattr(receipt, "block_number", None),
+                    events=events,
                 )
             else:
                 print(f"❌ Module update failed: {receipt.error_message}")
@@ -470,55 +473,50 @@ class SubstratePalletClient:
             # Prepare the extrinsic call
             # Convert hex string to bytes for the key
             if isinstance(public_key, str):
-                if public_key.startswith('0x'):
+                if public_key.startswith("0x"):
                     key_bytes = bytes.fromhex(public_key[2:])
                 else:
-                    key_bytes = public_key.encode('utf-8')
+                    key_bytes = public_key.encode("utf-8")
             else:
                 key_bytes = bytes(public_key)
 
             call = self.substrate.compose_call(
-                call_module='ModuleRegistry',
-                call_function='remove_module',
-                call_params={
-                    'key': key_bytes
-                }
+                call_module="ModuleRegistry",
+                call_function="remove_module",
+                call_params={"key": key_bytes},
             )
 
             # Create and submit the extrinsic
             extrinsic = self.substrate.create_signed_extrinsic(
-                call=call,
-                keypair=self.keypair
+                call=call, keypair=self.keypair
             )
 
             # Submit the extrinsic (use simple submission for HTTP connections)
-            if self.substrate.url.startswith('ws'):
+            if self.substrate.url.startswith("ws"):
                 # WebSocket connection - can wait for inclusion
                 receipt = self.substrate.submit_extrinsic(
-                    extrinsic,
-                    wait_for_inclusion=True,
-                    wait_for_finalization=True
+                    extrinsic, wait_for_inclusion=True, wait_for_finalization=True
                 )
             else:
                 # HTTP connection - submit without waiting
                 extrinsic_hash = self.substrate.submit_extrinsic(extrinsic)
                 receipt = {
-                    'extrinsic_hash': extrinsic_hash,
-                    'block_hash': None,
-                    'finalized': False
+                    "extrinsic_hash": extrinsic_hash,
+                    "block_hash": None,
+                    "finalized": False,
                 }
 
             print("📡 Remove extrinsic submitted")
 
             # Handle both dict and object receipt formats
             if isinstance(receipt, dict):
-                extrinsic_hash = receipt.get('extrinsic_hash', 'N/A')
-                block_hash = receipt.get('block_hash', 'N/A')
-                finalized = receipt.get('finalized', False)
+                extrinsic_hash = receipt.get("extrinsic_hash", "N/A")
+                block_hash = receipt.get("block_hash", "N/A")
+                finalized = receipt.get("finalized", False)
             else:
-                extrinsic_hash = getattr(receipt, 'extrinsic_hash', 'N/A')
-                block_hash = getattr(receipt, 'block_hash', 'N/A')
-                finalized = getattr(receipt, 'finalized', False)
+                extrinsic_hash = getattr(receipt, "extrinsic_hash", "N/A")
+                block_hash = getattr(receipt, "block_hash", "N/A")
+                finalized = getattr(receipt, "finalized", False)
 
             print(f"   Extrinsic Hash: {extrinsic_hash}")
             print(f"   Block Hash: {block_hash}")
@@ -530,28 +528,32 @@ class SubstratePalletClient:
             # Check if the extrinsic was successful
             is_success = False
             if isinstance(receipt, dict):
-                is_success = receipt.get('finalized', False) or extrinsic_hash != 'N/A'
+                is_success = receipt.get("finalized", False) or extrinsic_hash != "N/A"
             else:
-                is_success = getattr(receipt, 'is_success', False)
+                is_success = getattr(receipt, "is_success", False)
 
             if is_success:
                 print("✅ Module removal successful!")
 
                 events = []
-                if hasattr(receipt, 'triggered_events') and receipt.triggered_events:
+                if hasattr(receipt, "triggered_events") and receipt.triggered_events:
                     print(f"📋 {len(receipt.triggered_events)} events triggered")
                     for i, event in enumerate(receipt.triggered_events):
                         try:
                             # Safe event parsing - handle any event structure
-                            module_id = getattr(event, 'module_id', 'Unknown')
-                            event_id = getattr(event, 'event_id', 'Unknown')
+                            module_id = getattr(event, "module_id", "Unknown")
+                            event_id = getattr(event, "event_id", "Unknown")
                             print(f"   Event {i+1}: {module_id}::{event_id}")
                             events.append({"event": f"{module_id}::{event_id}"})
                         except Exception:
-                            print(f"   Event {i+1}: [Event parsing skipped: {type(event)}]")
+                            print(
+                                f"   Event {i+1}: [Event parsing skipped: {type(event)}]"
+                            )
                             events.append({"event": "event_logged"})
                 else:
-                    print("🎉 Extrinsic submitted - check blockchain for ModuleUpdated event")
+                    print(
+                        "🎉 Extrinsic submitted - check blockchain for ModuleUpdated event"
+                    )
 
                 return ModuleRegistration(
                     public_key=public_key,
@@ -559,7 +561,7 @@ class SubstratePalletClient:
                     block_hash=receipt.block_hash,
                     extrinsic_hash=receipt.extrinsic_hash,
                     block_number=receipt.block_number,
-                    events=events
+                    events=events,
                 )
             else:
                 print(f"❌ Module removal failed: {receipt.error_message}")
@@ -584,8 +586,7 @@ class SubstratePalletClient:
 
             # Query all entries in the Modules storage map
             result = self.substrate.query_map(
-                module='ModuleRegistry',
-                storage_function='Modules'
+                module="ModuleRegistry", storage_function="Modules"
             )
 
             print(f"   Raw query_map result: {result}")
@@ -600,39 +601,36 @@ class SubstratePalletClient:
                         # Handle different result formats
                         if isinstance(item, tuple) and len(item) == 2:
                             key, value = item
-                        elif hasattr(item, 'key') and hasattr(item, 'value'):
+                        elif hasattr(item, "key") and hasattr(item, "value"):
                             key, value = item.key, item.value
                         else:
                             print(f"   ⚠️ Unexpected item format: {item}")
                             continue
 
                         # Extract key data
-                        if hasattr(key, 'value'):
+                        if hasattr(key, "value"):
                             key_data = key.value
                         else:
                             key_data = key
 
                         # Extract value data
-                        if hasattr(value, 'value'):
+                        if hasattr(value, "value"):
                             value_data = value.value
                         else:
                             value_data = value
 
                         # Convert to strings
                         if isinstance(key_data, bytes):
-                            public_key = key_data.decode('utf-8')
+                            public_key = key_data.decode("utf-8")
                         else:
                             public_key = str(key_data)
 
                         if isinstance(value_data, bytes):
-                            cid = value_data.decode('utf-8')
+                            cid = value_data.decode("utf-8")
                         else:
                             cid = str(value_data)
 
-                        modules.append({
-                            "public_key": public_key,
-                            "cid": cid
-                        })
+                        modules.append({"public_key": public_key, "cid": cid})
                         print(f"   📦 {public_key[:16]}... → {cid}")
 
                     except Exception as item_error:
@@ -645,6 +643,7 @@ class SubstratePalletClient:
         except Exception as e:
             print(f"❌ Failed to list modules: {e}")
             import traceback
+
             traceback.print_exc()
             raise
 
@@ -710,7 +709,9 @@ async def test_real_pallet_integration():
         if updated_cid == new_cid:
             print(f"✅ Update verification successful: {updated_cid}")
         else:
-            print(f"❌ Update verification failed: expected {new_cid}, got {updated_cid}")
+            print(
+                f"❌ Update verification failed: expected {new_cid}, got {updated_cid}"
+            )
         print()
 
         # List all modules
@@ -744,6 +745,7 @@ async def test_real_pallet_integration():
     except Exception as e:
         print(f"❌ Real pallet integration test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -765,6 +767,8 @@ if __name__ == "__main__":
         print("This is TRUE end-to-end blockchain integration.")
     else:
         print("\n⚠️ CONCLUSION:")
-        print("Some blockchain integration tests failed. Check the logs above for details.")
+        print(
+            "Some blockchain integration tests failed. Check the logs above for details."
+        )
 
     exit(0 if success else 1)

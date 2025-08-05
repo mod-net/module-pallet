@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-MIT%200-blue.svg)](LICENSE)
 [![Build Status](https://github.com/Bakobiibizo/mod-net-modules/actions/workflows/rust.yml/badge.svg)](https://github.com/Bakobiibizo/mod-net-modules/actions)
-[![codecov](https://codecov.io/gh/Bakobiibizo/mod-net-modules/branch/main/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/Bakobiibizo/mod-net-modules)
+[![codecov](https://codecov.io/gh/Bakobiibizo/mod-net-modules/branch/main/graph/badge.svg)](https://codecov.io/gh/Bakobiibizo/mod-net-modules)
 [![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://bakobiibizo.github.io/mod-net-modules/)
 
 A production-grade decentralized module registry built on [Substrate](https://substrate.io/) with IPFS integration for secure, distributed metadata storage.
@@ -43,14 +43,15 @@ graph TD
    - Asynchronous operations
    - Comprehensive error handling
 
-## 🚀 Getting Started
+## Prerequisites
 
-### Prerequisites
-
-- Rust (latest stable)
+- Rust (latest stable, install via [rustup](https://rustup.rs/))
 - Python 3.10+
-- IPFS daemon
-- Substrate dependencies
+- IPFS daemon ([installation guide](https://docs.ipfs.tech/install/))
+- Substrate dependencies:
+  ```bash
+  curl https://getsubstrate.io -sSf | bash -s -- --fast
+  ```
 
 ### Quick Start
 
@@ -67,9 +68,18 @@ graph TD
 
 3. **Set up Python environment**
    ```bash
-   uv venv
-   source .venv/bin/activate
-   uv pip install -r requirements.txt
+   # Using standard venv
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+   # Install development dependencies
+   pip install -r requirements-dev.txt
+
+   # Alternative: Using uv (faster)
+   # pip install uv
+   # uv venv
+   # source .venv/bin/activate
+   # uv pip install -r requirements-dev.txt
    ```
 
 4. **Start IPFS daemon**
@@ -175,7 +185,7 @@ cd solochain-template
    Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard:
    ```
    type(scope): description
-   
+
    [optional body]
    [optional footer]
    ```

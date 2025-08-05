@@ -58,10 +58,14 @@ async def complete_qa_test():
             print("✅ Registration successful!")
             print(f"   Block Hash: {registration.block_hash}")
             print(f"   Extrinsic Hash: {registration.extrinsic_hash}")
-            print(f"   Events: {len(registration.events) if registration.events else 0} events logged")
+            print(
+                f"   Events: {len(registration.events) if registration.events else 0} events logged"
+            )
         except Exception as e:
             if "ModuleAlreadyExists" in str(e):
-                print("⚠️ Module already exists (from previous test) - this is expected")
+                print(
+                    "⚠️ Module already exists (from previous test) - this is expected"
+                )
                 print("   Continuing with query test...")
             else:
                 print(f"❌ Registration failed: {e}")
@@ -91,20 +95,18 @@ async def complete_qa_test():
                 raise RuntimeError("Client not properly connected")
 
             call = client.substrate.compose_call(
-                call_module='ModuleRegistry',
-                call_function='update_module',
-                call_params={
-                    'key': unique_key,
-                    'cid': updated_cid
-                }
+                call_module="ModuleRegistry",
+                call_function="update_module",
+                call_params={"key": unique_key, "cid": updated_cid},
             )
 
             extrinsic = client.substrate.create_signed_extrinsic(
-                call=call,
-                keypair=client.keypair
+                call=call, keypair=client.keypair
             )
 
-            receipt = client.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            receipt = client.substrate.submit_extrinsic(
+                extrinsic, wait_for_inclusion=True
+            )
 
             if receipt.is_success:
                 print("✅ Update successful!")
@@ -142,8 +144,7 @@ async def complete_qa_test():
                 raise RuntimeError("Client not properly connected")
 
             result = client.substrate.query_map(
-                module='ModuleRegistry',
-                storage_function='Modules'
+                module="ModuleRegistry", storage_function="Modules"
             )
 
             count = 0
@@ -167,17 +168,18 @@ async def complete_qa_test():
                 raise RuntimeError("Client not properly connected")
 
             call = client.substrate.compose_call(
-                call_module='ModuleRegistry',
-                call_function='remove_module',
-                call_params={'key': unique_key}
+                call_module="ModuleRegistry",
+                call_function="remove_module",
+                call_params={"key": unique_key},
             )
 
             extrinsic = client.substrate.create_signed_extrinsic(
-                call=call,
-                keypair=client.keypair
+                call=call, keypair=client.keypair
             )
 
-            receipt = client.substrate.submit_extrinsic(extrinsic, wait_for_inclusion=True)
+            receipt = client.substrate.submit_extrinsic(
+                extrinsic, wait_for_inclusion=True
+            )
 
             if receipt.is_success:
                 print("✅ Removal successful!")
@@ -208,12 +210,14 @@ async def complete_qa_test():
     except Exception as e:
         print(f"❌ QA test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
     finally:
         client.disconnect()
         print("🔌 Disconnected from chain")
+
 
 if __name__ == "__main__":
     print("🚀 Starting Complete QA Test")
@@ -235,6 +239,8 @@ if __name__ == "__main__":
         print("\n🎯 READY FOR IPFS INTEGRATION!")
     else:
         print("❌ QA TEST FAILED")
-        print("Some QA tests failed. Review the test results above for specific issues.")
+        print(
+            "Some QA tests failed. Review the test results above for specific issues."
+        )
 
     exit(0 if success else 1)

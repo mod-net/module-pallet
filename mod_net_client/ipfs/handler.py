@@ -3,6 +3,7 @@
 from typing import Any
 
 import ipfshttpclient
+
 from scripts.config import get_config
 
 
@@ -10,6 +11,7 @@ class IPFSHandler:
     """Handler for IPFS operations."""
 
     config = get_config()
+
     def __init__(
         self,
         api_url: str = config.ipfs.api_url,

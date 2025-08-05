@@ -12,17 +12,17 @@ graph TB
         A[Module Registry Pallet] --> B[Substrate Runtime]
         B --> C[Substrate Node]
     end
-    
+
     subgraph Storage Layer
         D[IPFS Network] --> E[Module Metadata]
         E --> F[Content-Addressable Storage]
     end
-    
+
     subgraph Client Layer
         G[Python Client] --> H[Type-safe API]
         I[Frontend] --> G
     end
-    
+
     A <-->|Store/Retrieve CIDs| D
     G <-->|Read/Write| A
     G <-->|Store/Retrieve| D
@@ -70,7 +70,7 @@ graph TB
        participant C as Client
        participant P as Pallet
        participant I as IPFS
-       
+
        C->>I: Upload module metadata
        I-->>C: Return CID
        C->>P: Register module(public_key, cid)
@@ -83,7 +83,7 @@ graph TB
        participant C as Client
        participant P as Pallet
        participant I as IPFS
-       
+
        C->>P: get_module(public_key)
        P-->>C: Return CID
        C->>I: Retrieve metadata using CID
@@ -133,10 +133,10 @@ graph LR
     A[Load Balancer] --> B[Substrate Node 1]
     A --> C[Substrate Node 2]
     A --> D[Substrate Node N]
-    
+
     B & C & D --> E[IPFS Cluster]
     E --> F[IPFS Nodes]
-    
+
     G[Client Applications] --> H[API Gateway]
     H --> A
 ```

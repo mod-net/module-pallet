@@ -48,7 +48,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	
+
 	/// Storage: `ModuleRegistry::Modules` (r:1 w:1)
 	/// Proof: `ModuleRegistry::Modules` (`max_values`: None, `max_size`: Some(256), added: 2731, mode: `MaxEncodedLen`)
 	fn update_module() -> Weight {
@@ -60,7 +60,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	
+
 	/// Storage: `ModuleRegistry::Modules` (r:1 w:1)
 	/// Proof: `ModuleRegistry::Modules` (`max_values`: None, `max_size`: Some(256), added: 2731, mode: `MaxEncodedLen`)
 	fn remove_module() -> Weight {
@@ -87,7 +87,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
-	
+
 	/// Storage: `ModuleRegistry::Modules` (r:1 w:1)
 	/// Proof: `ModuleRegistry::Modules` (`max_values`: None, `max_size`: Some(256), added: 2731, mode: `MaxEncodedLen`)
 	fn update_module() -> Weight {
@@ -99,7 +99,7 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(1_u64))
 			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
-	
+
 	/// Storage: `ModuleRegistry::Modules` (r:1 w:1)
 	/// Proof: `ModuleRegistry::Modules` (`max_values`: None, `max_size`: Some(256), added: 2731, mode: `MaxEncodedLen`)
 	fn remove_module() -> Weight {

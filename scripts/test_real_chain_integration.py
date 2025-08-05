@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 
 import aiohttp
+
 from .config import get_config
 
 # Add paths for imports
@@ -32,6 +33,7 @@ from module import TestModule
 try:
     # Integration client imports (currently unused but kept for future use)
     import integration_client  # noqa: F401
+
     HAS_INTEGRATION_CLIENT = True
 except ImportError:
     print("⚠️ Integration client not available - will test with direct HTTP calls")
@@ -39,12 +41,15 @@ except ImportError:
 
 try:
     import aiohttp
+
     HAS_AIOHTTP = True
 except ImportError:
     print("⚠️ aiohttp not available - installing...")
     import subprocess
+
     subprocess.run(["uv", "add", "aiohttp"], check=True)
     import aiohttp
+
     HAS_AIOHTTP = True
 
 
@@ -83,19 +88,23 @@ class RealChainIntegrationTest:
                     "id": 1,
                     "jsonrpc": "2.0",
                     "method": "system_chain",
-                    "params": []
+                    "params": [],
                 }
 
                 await websocket.send(json.dumps(request))
                 response = await websocket.recv()
                 chain_info = json.loads(response)
 
-                print(f"✅ Connected to Substrate chain: {chain_info.get('result', 'Unknown')}")
+                print(
+                    f"✅ Connected to Substrate chain: {chain_info.get('result', 'Unknown')}"
+                )
                 return True
 
         except Exception as e:
             print(f"❌ Failed to connect to Substrate chain: {e}")
-            print("   Make sure the chain is running: ./target/release/solochain-template-node --dev --tmp")
+            print(
+                "   Make sure the chain is running: ./target/release/solochain-template-node --dev --tmp"
+            )
             return False
 
     async def check_ipfs_backend(self):
@@ -116,7 +125,9 @@ class RealChainIntegrationTest:
 
         except Exception as e:
             print(f"❌ Failed to connect to commune-ipfs backend: {e}")
-            print("   Make sure backend is running: cd commune-ipfs && uv run python main.py")
+            print(
+                "   Make sure backend is running: cd commune-ipfs && uv run python main.py"
+            )
             return False
 
     async def test_real_ipfs_storage(self):
@@ -125,8 +136,7 @@ class RealChainIntegrationTest:
 
         # Create test module with real metadata
         self.test_module = TestModule(
-            name="real-chain-test-module",
-            registry_url=self.ipfs_backend_url
+            name="real-chain-test-module", registry_url=self.ipfs_backend_url
         )
 
         # Get comprehensive metadata
@@ -141,10 +151,9 @@ class RealChainIntegrationTest:
                 json={
                     "public_key": metadata["public_key"],
                     "metadata": metadata,
-                    "pin": True
-                }
+                    "pin": True,
+                },
             ) as response:
-
                 if response.status == 200:
                     result = await response.json()
                     cid = result["cid"]
@@ -156,15 +165,20 @@ class RealChainIntegrationTest:
                     async with self.session.get(
                         f"{self.ipfs_backend_url}/api/modules/{cid}"
                     ) as get_response:
-
                         if get_response.status == 200:
                             retrieved_metadata = await get_response.json()
                             print("✅ Successfully retrieved metadata from IPFS")
-                            print(f"   Module: {retrieved_metadata['metadata']['name']}")
-                            print(f"   Version: {retrieved_metadata['metadata']['version']}")
+                            print(
+                                f"   Module: {retrieved_metadata['metadata']['name']}"
+                            )
+                            print(
+                                f"   Version: {retrieved_metadata['metadata']['version']}"
+                            )
                             return cid
                         else:
-                            print(f"❌ Failed to retrieve metadata: {get_response.status}")
+                            print(
+                                f"❌ Failed to retrieve metadata: {get_response.status}"
+                            )
                             return None
                 else:
                     error_text = await response.text()
@@ -196,9 +210,11 @@ class RealChainIntegrationTest:
                 "pallet": "ModuleRegistry",
                 "call": "register",
                 "args": {
-                    "public_key": getattr(self.test_module, 'public_key', 'default_key').encode('utf-8'),
-                    "cid": cid.encode('utf-8')
-                }
+                    "public_key": getattr(
+                        self.test_module, "public_key", "default_key"
+                    ).encode("utf-8"),
+                    "cid": cid.encode("utf-8"),
+                },
             }
 
             print("📋 Pallet call structure:")
@@ -229,7 +245,7 @@ class RealChainIntegrationTest:
 
         # Run module tests
         test_results = self.test_module.test()
-        if not test_results['summary']['overall_passed']:
+        if not test_results["summary"]["overall_passed"]:
             print("❌ Module functionality tests failed")
             return False
 
@@ -311,6 +327,7 @@ class RealChainIntegrationTest:
         except Exception as e:
             print(f"\n❌ Test suite failed with error: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -325,6 +342,7 @@ async def main():
         except ImportError:
             print("Installing websockets...")
             import subprocess
+
             subprocess.run(["uv", "add", "websockets"], check=True)
 
         # Run the real integration test
@@ -335,6 +353,7 @@ async def main():
     except Exception as e:
         print(f"❌ Test execution failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

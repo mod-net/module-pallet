@@ -63,7 +63,7 @@ pub(super) type ModuleRegistry<T: Config> = StorageMap<
 ### Multi-Chain Key Support
 
 - **Ed25519**: 32-byte public keys (Polkadot/Substrate native)
-- **Ethereum**: 20-byte addresses or 64-byte public keys  
+- **Ethereum**: 20-byte addresses or 64-byte public keys
 - **Solana**: 32-byte public keys
 - **Flexible**: `Vec<u8>` format supports future key types
 ```
