@@ -107,9 +107,7 @@ class GitHubActionsValidator:
             triggers_key = (
                 True
                 if True in workflow_data
-                else "on"
-                if "on" in workflow_data
-                else None
+                else "on" if "on" in workflow_data else None
             )
             if triggers_key is not None:
                 triggers = workflow_data[triggers_key]

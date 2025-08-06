@@ -314,11 +314,11 @@ class TestModule:
                 {
                     "number": num,
                     "is_prime": is_prime(num),
-                    "factors": []
-                    if is_prime(num)
-                    else [i for i in range(2, num) if num % i == 0][
-                        :10
-                    ],  # Limit factors
+                    "factors": (
+                        []
+                        if is_prime(num)
+                        else [i for i in range(2, num) if num % i == 0][:10]
+                    ),  # Limit factors
                 }
             )
 

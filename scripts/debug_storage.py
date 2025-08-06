@@ -42,9 +42,11 @@ async def debug_storage_queries():
             ("UTF-8 bytes", test_key.encode("utf-8")),
             (
                 "Hex decoded",
-                bytes.fromhex(test_key[2:])
-                if test_key.startswith("0x")
-                else test_key.encode(),
+                (
+                    bytes.fromhex(test_key[2:])
+                    if test_key.startswith("0x")
+                    else test_key.encode()
+                ),
             ),
         ]
 

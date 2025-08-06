@@ -63,9 +63,7 @@ async def complete_qa_test():
             )
         except Exception as e:
             if "ModuleAlreadyExists" in str(e):
-                print(
-                    "⚠️ Module already exists (from previous test) - this is expected"
-                )
+                print("⚠️ Module already exists (from previous test) - this is expected")
                 print("   Continuing with query test...")
             else:
                 print(f"❌ Registration failed: {e}")
