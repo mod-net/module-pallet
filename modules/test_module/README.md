@@ -135,11 +135,11 @@ async def register_module():
         name="production-module",
         registry_url="http://localhost:8004"
     )
-    
+
     # Register in Module Registry with IPFS metadata
     result = await module.register_in_registry()
     print(f"Registered with CID: {result['cid']}")
-    
+
     return result
 
 # Run registration

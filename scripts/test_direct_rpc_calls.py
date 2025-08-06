@@ -15,6 +15,7 @@ import asyncio
 from typing import Any
 
 import aiohttp
+
 from .config import get_config
 
 
@@ -37,7 +38,9 @@ class DirectRPCClient:
         if self.session:
             await self.session.close()
 
-    async def rpc_call(self, method: str, params: list[Any] | None = None) -> dict[str, Any]:
+    async def rpc_call(
+        self, method: str, params: list[Any] | None = None
+    ) -> dict[str, Any]:
         """Make a direct RPC call to the Substrate node."""
         if params is None:
             params = []
@@ -46,7 +49,7 @@ class DirectRPCClient:
             "id": self.request_id,
             "jsonrpc": "2.0",
             "method": method,
-            "params": params
+            "params": params,
         }
 
         self.request_id += 1
@@ -58,9 +61,8 @@ class DirectRPCClient:
                 self.rpc_url,
                 json=payload,
                 headers={"Content-Type": "application/json"},
-                timeout=aiohttp.ClientTimeout(total=30)
+                timeout=aiohttp.ClientTimeout(total=30),
             ) as response:
-
                 if response.status == 200:
                     result = await response.json()
                     if "error" in result:
@@ -144,7 +146,9 @@ class DirectRPCClient:
             print(f"✅ Found {len(storage_keys)} storage keys")
 
             # Look for ModuleRegistry related keys
-            module_registry_keys = [key for key in storage_keys if "moduleregistry" in key.lower()]
+            module_registry_keys = [
+                key for key in storage_keys if "moduleregistry" in key.lower()
+            ]
             print(f"✅ ModuleRegistry keys: {len(module_registry_keys)}")
 
             if module_registry_keys:
@@ -249,7 +253,7 @@ class DirectRPCClient:
             "metadata": False,
             "storage": False,
             "extrinsic": False,
-            "monitoring": False
+            "monitoring": False,
         }
 
         # Test 1: Basic connectivity
@@ -341,7 +345,9 @@ if __name__ == "__main__":
     if success:
         print("\n🎉 CONCLUSION:")
         print("Direct RPC communication is working!")
-        print("We can now implement real pallet calls with actual blockchain transactions.")
+        print(
+            "We can now implement real pallet calls with actual blockchain transactions."
+        )
     else:
         print("\n⚠️ CONCLUSION:")
         print("RPC communication issues need to be resolved.")

@@ -14,7 +14,7 @@ if __name__ == "__main__":
         command = command.split(" ")
         result = subprocess.run(command, stdout=PIPE, stderr=PIPE)
         results.append(result)
-    
+
     for result in results:
         print(result.stdout.decode("utf-8"))
         print(result.stderr.decode("utf-8"))

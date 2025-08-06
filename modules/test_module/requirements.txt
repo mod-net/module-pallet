@@ -6,7 +6,7 @@
 
 # Standard library modules used:
 # - asyncio (built-in)
-# - json (built-in) 
+# - json (built-in)
 # - time (built-in)
 # - datetime (built-in)
 # - typing (built-in)

@@ -1,0 +1,133 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: trailing-whitespace
+        # Include submodules
+        exclude: |
+            (?x)^(
+                .*/\.git/
+            )$
+        # Enable submodule traversal
+        always_run: true
+    -   id: end-of-file-fixer
+        exclude: |
+            (?x)^(
+                .*/\.git/
+            )$
+        always_run: true
+    -   id: check-yaml
+        always_run: true
+    -   id: check-added-large-files
+        args: [--maxkb=1024]
+        always_run: true
+    -   id: check-merge-conflict
+        always_run: true
+    -   id: check-symlinks
+        always_run: true
+    -   id: mixed-line-ending
+        args: [--fix=lf]
+        always_run: true
+    -   id: check-case-conflict
+        always_run: true
+    -   id: check-json
+        always_run: true
+    -   id: check-toml
+        always_run: true
+
+-   repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+    -   id: black
+        name: black (python)
+        language: system
+        entry: black
+        args: [--line-length=88]
+        types: [python]
+        files: \.(py|pyi|pyx|pxd)$
+        exclude: |
+            ^(
+                .*/\.git/
+                |.*/build/
+                |.*/target/
+                |.*/\.venv/
+                |.*/venv/
+                |.*/\.env/
+                |.*/\.mypy_cache/
+                |.*/\.pytest_cache/
+                |.*/\.ruff_cache/
+            )
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
+    hooks:
+    -   id: ruff
+        name: ruff (python)
+        types: [python]
+        args: [--fix]
+        exclude: |
+            ^(
+                .*/\.git/
+                |.*/build/
+                |.*/target/
+                |.*/\.venv/
+                |.*/venv/
+                |.*/\.env/
+                |.*/\.mypy_cache/
+                |.*/\.pytest_cache/
+                |.*/\.ruff_cache/
+            )
+
+-   repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+    -   id: isort
+        name: isort (python)
+        language: system
+        entry: isort
+        args: [--profile=black]
+        types: [python]
+        files: \.(py|pyi|pyx|pxd)$
+        exclude: |
+            ^(
+                .*/\.git/
+                |.*/build/
+                |.*/target/
+                |.*/\.venv/
+                |.*/venv/
+                |.*/\.env/
+                |.*/\.mypy_cache/
+                |.*/\.pytest_cache/
+                |.*/\.ruff_cache/
+            )
+
+# Rust tooling is handled through rustup and cargo directly
+# Install required components:
+# rustup component add rustfmt clippy
+-   repo: local
+    hooks:
+    -   id: rustfmt
+        name: rustfmt
+        entry: bash -c 'find . -name "*.rs" -not -path "*/target/*" -not -path "*/.git/*" -exec rustfmt --edition=2021 --check {} + || exit 1'
+        language: system
+        types: [rust]
+        pass_filenames: false
+        always_run: true
+
+    -   id: cargo-check
+        name: cargo check
+        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Checking $dir" && (cd "$dir" && cargo check --all-targets --all-features) || exit 1; done'
+        language: system
+        types: [rust]
+        pass_filenames: false
+        always_run: true
+        verbose: true
+
+    -   id: cargo-clippy
+        name: cargo clippy
+        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Linting $dir" && (cd "$dir" && cargo clippy -- -D warnings) || exit 1; done'
+        language: system
+        types: [rust]
+        pass_filenames: false
+        always_run: true
+        verbose: true

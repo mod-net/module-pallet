@@ -29,36 +29,38 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install UV
         run: pip install uv
-      
+
       - name: Install dependencies
         run: |
           cd commune-ipfs
           uv venv
           source .venv/bin/activate
-          uv pip install -r requirements.txt
-          uv pip install -e .
+          # Install in development mode with test dependencies
+          uv pip install -e ".[dev]"
+          # Explicitly add the project root to PYTHONPATH
+          echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       - name: Run Black
         run: |
           cd commune-ipfs
           source .venv/bin/activate
           black . --check
-        
+
       - name: Run isort
         run: |
           cd commune-ipfs
           source .venv/bin/activate
           isort . --check-only --profile black
-        
+
       - name: Run Ruff
         run: |
           cd commune-ipfs
           source .venv/bin/activate
           ruff check .
-        
+
       - name: Run MyPy
         run: |
           cd commune-ipfs
@@ -77,23 +79,28 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          
+
       - name: Install UV
         run: pip install uv
-      
+
       - name: Install dependencies
         run: |
           cd commune-ipfs
           uv venv
           source .venv/bin/activate
-          uv pip install -r requirements.txt
-          uv pip install -e .
+          # Install in development mode with test dependencies
+          uv pip install -e ".[dev]"
+          # Explicitly add the project root to PYTHONPATH
+          echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
           cd commune-ipfs
           source .venv/bin/activate
-          pytest tests/ -v --cov=app --cov-report=xml
+          # Set PYTHONPATH to include the project root
+          export PYTHONPATH=$PWD
+          # Run tests with increased verbosity and coverage
+          python -m pytest tests/ -v --cov=app --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

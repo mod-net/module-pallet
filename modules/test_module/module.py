@@ -22,9 +22,11 @@ from scripts.config import get_config
 # Import commune if available, otherwise create a minimal mock
 try:
     import commune as c
+
     HAS_COMMUNE = True
 except ImportError:
     HAS_COMMUNE = False
+
     # Create minimal mock for standalone operation
     class MockMod:
         def print(self, *args, **kwargs):
@@ -49,15 +51,15 @@ class TestModule:
 
     # Commune module attributes
     expose = [
-        'info',
-        'forward',
-        'compute',
-        'fibonacci',
-        'prime_check',
-        'data_transform',
-        'get_metadata',
-        'register_in_registry',
-        'health_check'
+        "info",
+        "forward",
+        "compute",
+        "fibonacci",
+        "prime_check",
+        "data_transform",
+        "get_metadata",
+        "register_in_registry",
+        "health_check",
     ]
 
     # Module metadata for registry
@@ -72,16 +74,18 @@ class TestModule:
         "tags": ["test", "computation", "fibonacci", "prime", "demo"],
         "chain_type": "ed25519",
         "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "updated_at": datetime.now().isoformat(),
     }
 
-    def __init__(self,
-                 name: str = "test-module",
-                 version: str = "1.0.0",
-                 description: str = "A test module for the Module Registry",
-                 public_key: str | None = None,
-                 registry_url: str | None = None,
-                 **kwargs):
+    def __init__(
+        self,
+        name: str = "test-module",
+        version: str = "1.0.0",
+        description: str = "A test module for the Module Registry",
+        public_key: str | None = None,
+        registry_url: str | None = None,
+        **kwargs,
+    ):
         config = get_config()
         """
         Initialize the test module.
@@ -101,19 +105,22 @@ class TestModule:
         self.start_time = time.time()
 
         # Update metadata with instance-specific info
-        self.metadata.update({
-            "name": self.name,
-            "version": self.version,
-            "description": self.description,
-            "public_key": self.public_key,
-            "updated_at": datetime.now().isoformat()
-        })
+        self.metadata.update(
+            {
+                "name": self.name,
+                "version": self.version,
+                "description": self.description,
+                "public_key": self.public_key,
+                "updated_at": datetime.now().isoformat(),
+            }
+        )
 
-        c.print(f"🚀 TestModule '{self.name}' initialized", color='green')
+        c.print(f"🚀 TestModule '{self.name}' initialized", color="green")
 
     def generate_mock_key(self) -> str:
         """Generate a mock public key for testing purposes."""
         import hashlib
+
         key_material = f"test-module-{time.time()}-{self.name}"
         return "0x" + hashlib.sha256(key_material.encode()).hexdigest()[:40]
 
@@ -136,7 +143,7 @@ class TestModule:
             "status": "active",
             "functions": self.expose,
             "registry_url": self.registry_url,
-            "timestamp": c.time() if HAS_COMMUNE else time.time()
+            "timestamp": c.time() if HAS_COMMUNE else time.time(),
         }
 
     def forward(self, fn: str, *args, **kwargs) -> Any:
@@ -177,17 +184,17 @@ class TestModule:
         start_time = time.time()
 
         try:
-            if operation == 'add':
+            if operation == "add":
                 result = sum(args)
-            elif operation == 'multiply':
+            elif operation == "multiply":
                 result = 1
                 for arg in args:
                     result *= arg
-            elif operation == 'power':
+            elif operation == "power":
                 if len(args) != 2:
                     raise ValueError("Power operation requires exactly 2 arguments")
                 result = args[0] ** args[1]
-            elif operation == 'factorial':
+            elif operation == "factorial":
                 if len(args) != 1 or not isinstance(args[0], int) or args[0] < 0:
                     raise ValueError("Factorial requires a single non-negative integer")
                 n = args[0]
@@ -205,7 +212,7 @@ class TestModule:
                 "result": result,
                 "duration": duration,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
         except Exception as e:
@@ -215,7 +222,7 @@ class TestModule:
                 "error": str(e),
                 "duration": time.time() - start_time,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
     def fibonacci(self, n: int, method: str = "iterative") -> dict[str, Any]:
@@ -242,10 +249,11 @@ class TestModule:
                     sequence.append(a)
                     a, b = b, a + b
             elif method == "recursive":
+
                 def fib_recursive(x):
                     if x <= 1:
                         return x
-                    return fib_recursive(x-1) + fib_recursive(x-2)
+                    return fib_recursive(x - 1) + fib_recursive(x - 2)
 
                 sequence = [fib_recursive(i) for i in range(n)]
             else:
@@ -260,7 +268,7 @@ class TestModule:
                 "duration": duration,
                 "last_value": sequence[-1] if sequence else 0,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
         except Exception as e:
@@ -270,7 +278,7 @@ class TestModule:
                 "method": method,
                 "duration": time.time() - start_time,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
     def prime_check(self, numbers: int | list[int]) -> dict[str, Any]:
@@ -302,11 +310,17 @@ class TestModule:
 
         results = []
         for num in numbers:
-            results.append({
-                "number": num,
-                "is_prime": is_prime(num),
-                "factors": [] if is_prime(num) else [i for i in range(2, num) if num % i == 0][:10]  # Limit factors
-            })
+            results.append(
+                {
+                    "number": num,
+                    "is_prime": is_prime(num),
+                    "factors": (
+                        []
+                        if is_prime(num)
+                        else [i for i in range(2, num) if num % i == 0][:10]
+                    ),  # Limit factors
+                }
+            )
 
         duration = time.time() - start_time
         prime_count = sum(1 for r in results if r["is_prime"])
@@ -318,7 +332,7 @@ class TestModule:
             "composite_count": len(numbers) - prime_count,
             "duration": duration,
             "timestamp": time.time(),
-            "module": self.name
+            "module": self.name,
         }
 
     def data_transform(self, data: Any, operation: str = "json") -> dict[str, Any]:
@@ -342,6 +356,7 @@ class TestModule:
                     result = json.dumps(data, default=str)
             elif operation == "hash":
                 import hashlib
+
                 data_str = json.dumps(data, sort_keys=True, default=str)
                 result = hashlib.sha256(data_str.encode()).hexdigest()
             elif operation == "reverse":
@@ -369,7 +384,7 @@ class TestModule:
                 "result_type": type(result).__name__,
                 "duration": duration,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
         except Exception as e:
@@ -379,7 +394,7 @@ class TestModule:
                 "error": str(e),
                 "duration": time.time() - start_time,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
     def get_metadata(self) -> dict[str, Any]:
@@ -392,10 +407,12 @@ class TestModule:
         return {
             **self.metadata,
             "runtime_info": self.info(),
-            "last_accessed": datetime.now().isoformat()
+            "last_accessed": datetime.now().isoformat(),
         }
 
-    async def register_in_registry(self, registry_url: str | None = None) -> dict[str, Any]:
+    async def register_in_registry(
+        self, registry_url: str | None = None
+    ) -> dict[str, Any]:
         """
         Register this module in the Module Registry.
 
@@ -426,7 +443,7 @@ class TestModule:
                 "registry_url": registry_url,
                 "metadata": metadata,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
         except Exception as e:
@@ -435,7 +452,7 @@ class TestModule:
                 "error": str(e),
                 "registry_url": registry_url,
                 "timestamp": time.time(),
-                "module": self.name
+                "module": self.name,
             }
 
     def health_check(self) -> dict[str, Any]:
@@ -452,7 +469,7 @@ class TestModule:
             "compute_test": False,
             "fibonacci_test": False,
             "prime_test": False,
-            "data_transform_test": False
+            "data_transform_test": False,
         }
 
         try:
@@ -473,7 +490,7 @@ class TestModule:
             tests["data_transform_test"] = result.get("result") == [1, 2, 3]
 
         except Exception as e:
-            c.print(f"Health check error: {e}", color='red')
+            c.print(f"Health check error: {e}", color="red")
 
         all_tests_passed = all(tests.values())
 
@@ -485,7 +502,7 @@ class TestModule:
             "all_tests_passed": all_tests_passed,
             "memory_usage": "N/A",  # Could add actual memory monitoring
             "timestamp": time.time(),
-            "module": self.name
+            "module": self.name,
         }
 
     def test(self) -> dict[str, Any]:
@@ -495,80 +512,82 @@ class TestModule:
         Returns:
             Test results
         """
-        c.print(f"🧪 Running tests for {self.name}", color='blue')
+        c.print(f"🧪 Running tests for {self.name}", color="blue")
 
         test_results: dict[str, Any] = {
             "module": self.name,
             "timestamp": time.time(),
-            "tests": {}
+            "tests": {},
         }
 
         # Test all exposed functions
         for fn_name in self.expose:
-            if fn_name in ['info', 'forward', 'test', 'register_in_registry']:
+            if fn_name in ["info", "forward", "test", "register_in_registry"]:
                 continue  # Skip meta functions
 
             try:
                 tests_dict = test_results["tests"]
-                if fn_name == 'compute':
+                if fn_name == "compute":
                     result = self.compute("add", 5, 10)
                     tests_dict[fn_name] = {
                         "passed": result.get("result") == 15,
-                        "result": result
+                        "result": result,
                     }
-                elif fn_name == 'fibonacci':
+                elif fn_name == "fibonacci":
                     result = self.fibonacci(6)
                     tests_dict[fn_name] = {
                         "passed": len(result.get("sequence", [])) == 6,
-                        "result": result
+                        "result": result,
                     }
-                elif fn_name == 'prime_check':
+                elif fn_name == "prime_check":
                     result = self.prime_check([7, 8, 9])
                     tests_dict[fn_name] = {
                         "passed": len(result.get("results", [])) == 3,
-                        "result": result
+                        "result": result,
                     }
-                elif fn_name == 'data_transform':
+                elif fn_name == "data_transform":
                     result = self.data_transform("hello", "reverse")
                     tests_dict[fn_name] = {
                         "passed": result.get("result") == "olleh",
-                        "result": result
+                        "result": result,
                     }
-                elif fn_name == 'get_metadata':
+                elif fn_name == "get_metadata":
                     result = self.get_metadata()
                     tests_dict[fn_name] = {
                         "passed": "name" in result and "version" in result,
-                        "result": result
+                        "result": result,
                     }
-                elif fn_name == 'health_check':
+                elif fn_name == "health_check":
                     result = self.health_check()
                     tests_dict[fn_name] = {
                         "passed": result.get("all_tests_passed", False),
-                        "result": result
+                        "result": result,
                     }
 
             except Exception as e:
                 tests_dict = test_results["tests"]
-                tests_dict[fn_name] = {
-                    "passed": False,
-                    "error": str(e)
-                }
+                tests_dict[fn_name] = {"passed": False, "error": str(e)}
 
         # Overall test result
         tests_dict = test_results["tests"]
-        passed_tests = sum(1 for test in tests_dict.values() if test.get("passed", False))
+        passed_tests = sum(
+            1 for test in tests_dict.values() if test.get("passed", False)
+        )
         total_tests = len(tests_dict)
         test_results["summary"] = {
             "total_tests": total_tests,
             "passed_tests": passed_tests,
             "failed_tests": total_tests - passed_tests,
             "success_rate": passed_tests / total_tests if total_tests > 0 else 0,
-            "overall_passed": passed_tests == total_tests
+            "overall_passed": passed_tests == total_tests,
         }
 
         summary_dict = test_results["summary"]
-        status_color = 'green' if summary_dict["overall_passed"] else 'red'
-        c.print(f"✅ Tests completed: {passed_tests}/{total_tests} passed", color=status_color)
+        status_color = "green" if summary_dict["overall_passed"] else "red"
+        c.print(
+            f"✅ Tests completed: {passed_tests}/{total_tests} passed",
+            color=status_color,
+        )
 
         return test_results
 
@@ -604,5 +623,7 @@ if __name__ == "__main__":
 
     print("\n🧪 Running Full Test Suite:")
     test_results = module.test()
-    print(f"Overall Result: {'✅ PASSED' if test_results['summary']['overall_passed'] else '❌ FAILED'}")
+    print(
+        f"Overall Result: {'✅ PASSED' if test_results['summary']['overall_passed'] else '❌ FAILED'}"
+    )
     print(f"Success Rate: {test_results['summary']['success_rate']:.1%}")

@@ -10,8 +10,9 @@ This script focuses on debugging the storage query issues by:
 
 import asyncio
 
-from .config import get_config
 from substrate_pallet_client import SubstratePalletClient
+
+from .config import get_config
 
 
 async def debug_storage_queries():
@@ -38,8 +39,15 @@ async def debug_storage_queries():
         # Try different key encoding methods
         key_variants = [
             ("Raw string", test_key),
-            ("UTF-8 bytes", test_key.encode('utf-8')),
-            ("Hex decoded", bytes.fromhex(test_key[2:]) if test_key.startswith('0x') else test_key.encode()),
+            ("UTF-8 bytes", test_key.encode("utf-8")),
+            (
+                "Hex decoded",
+                (
+                    bytes.fromhex(test_key[2:])
+                    if test_key.startswith("0x")
+                    else test_key.encode()
+                ),
+            ),
         ]
 
         for desc, key_variant in key_variants:
@@ -49,9 +57,9 @@ async def debug_storage_queries():
                     raise RuntimeError("Client not properly connected")
 
                 result = client.substrate.query(
-                    module='ModuleRegistry',
-                    storage_function='Modules',
-                    params=[key_variant]
+                    module="ModuleRegistry",
+                    storage_function="Modules",
+                    params=[key_variant],
                 )
                 print(f"   Result: {result}")
                 print(f"   Result value: {result.value}")
@@ -71,8 +79,7 @@ async def debug_storage_queries():
                 raise RuntimeError("Client not properly connected")
 
             result = client.substrate.query_map(
-                module='ModuleRegistry',
-                storage_function='Modules'
+                module="ModuleRegistry", storage_function="Modules"
             )
             print(f"   Query map result: {result}")
             print(f"   Query map type: {type(result)}")
@@ -82,7 +89,7 @@ async def debug_storage_queries():
                 for i, item in enumerate(result):
                     print(f"     Entry {i}: {item}")
                     print(f"     Entry type: {type(item)}")
-                    if hasattr(item, 'key') and hasattr(item, 'value'):
+                    if hasattr(item, "key") and hasattr(item, "value"):
                         print(f"       Key: {item.key} (type: {type(item.key)})")
                         print(f"       Value: {item.value} (type: {type(item.value)})")
             else:
@@ -91,12 +98,15 @@ async def debug_storage_queries():
         except Exception as e:
             print(f"   ❌ Query map error: {e}")
             import traceback
+
             traceback.print_exc()
 
         # Try to register a new module to see the storage in action
         print("\n🧪 Attempting fresh registration to observe storage...")
         # Generate a different test key for new registration
-        new_test_key = "0x" + config.substrate.test_public_key[2:34] + "abcdef1234567890abcdef12"
+        new_test_key = (
+            "0x" + config.substrate.test_public_key[2:34] + "abcdef1234567890abcdef12"
+        )
         new_test_cid = "QmNewTestCID1234567890abcdef1234567890"
 
         try:
@@ -118,11 +128,13 @@ async def debug_storage_queries():
     except Exception as e:
         print(f"❌ Debug session failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
     finally:
         client.disconnect()
+
 
 if __name__ == "__main__":
     print("🔗 Storage Query Debugging")

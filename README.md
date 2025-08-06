@@ -1,17 +1,127 @@
 # Mod-Net Module Registry
 
-A decentralized module registry built on [Substrate](https://substrate.io/) with IPFS integration for metadata storage :rocket:
+[![License](https://img.shields.io/badge/License-MIT%200-blue.svg)](LICENSE)
+[![Build Status](https://github.com/Bakobiibizo/mod-net-modules/actions/workflows/rust.yml/badge.svg)](https://github.com/Bakobiibizo/mod-net-modules/actions)
+[![codecov](https://codecov.io/gh/Bakobiibizo/mod-net-modules/branch/main/graph/badge.svg)](https://codecov.io/gh/Bakobiibizo/mod-net-modules)
+[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://bakobiibizo.github.io/mod-net-modules/)
 
-## Project Overview
+A production-grade decentralized module registry built on [Substrate](https://substrate.io/) with IPFS integration for secure, distributed metadata storage.
 
-Mod-Net is a decentralized module registry built on Substrate, designed to provide a secure and efficient way to manage and distribute modules. The project features:
+## 🌟 Features
 
-- **Module Registry Pallet**: Core Substrate pallet for on-chain module management
-- **IPFS Integration**: Distributed storage for module metadata using `commune-ipfs`
-- **Python Client**: Type-safe client library for interacting with the registry
-- **Production-Ready Workflow**: Comprehensive CI/CD, testing, and documentation
+- **Multi-chain Module Registry**: Manage modules across different blockchain networks
+- **IPFS-Powered Storage**: Decentralized metadata storage using IPFS
+- **Type-safe Python Client**: Easy integration with existing Python projects
+- **Production-Ready**: Comprehensive CI/CD, testing, and documentation
+- **Modular Architecture**: Extensible design for custom implementations
 
-This project is built on the [Substrate Node Template](https://github.com/substrate-developer-hub/substrate-node-template/) with significant enhancements for module registry functionality.
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    A[Module Registry Pallet] -->|Stores| B[(IPFS CIDs)]
+    C[Python Client] -->|Interacts with| A
+    C -->|Manages| B
+    D[Frontend] -->|Uses| C
+    E[External Services] -->|Integrates with| A
+```
+
+### Core Components
+
+1. **Module Registry Pallet**
+   - On-chain storage for module metadata references
+   - Multi-chain public key support
+   - Efficient storage using IPFS CIDs
+
+2. **IPFS Integration**
+   - Distributed metadata storage
+   - Content-addressable architecture
+   - Off-chain data availability
+
+3. **Python Client**
+   - Type-safe API client
+   - Asynchronous operations
+   - Comprehensive error handling
+
+## Prerequisites
+
+- Rust (latest stable, install via [rustup](https://rustup.rs/))
+- Python 3.10+
+- IPFS daemon ([installation guide](https://docs.ipfs.tech/install/))
+- Substrate dependencies:
+  ```bash
+  curl https://getsubstrate.io -sSf | bash -s -- --fast
+  ```
+
+### Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone --recursive https://github.com/Bakobiibizo/mod-net-modules.git
+   cd mod-net-modules/modules
+   ```
+
+2. **Build the node**
+   ```bash
+   cargo build --release
+   ```
+
+3. **Set up Python environment**
+   ```bash
+   # Using standard venv
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+   # Install development dependencies
+   pip install -r requirements-dev.txt
+
+   # Alternative: Using uv (faster)
+   # pip install uv
+   # uv venv
+   # source .venv/bin/activate
+   # uv pip install -r requirements-dev.txt
+   ```
+
+4. **Start IPFS daemon**
+   ```bash
+   ipfs daemon
+   ```
+
+5. **Run the node**
+   ```bash
+   ./target/release/node-template --dev
+   ```
+
+## 📚 Documentation
+
+- [Architecture](./docs/ARCHITECTURE.md) - High-level system design
+- [API Reference](./docs/API.md) - Detailed API documentation
+- [Development Guide](./docs/DEVELOPMENT.md) - Setting up a development environment
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment instructions
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📜 License
+
+This project is licensed under the MIT-0 License - see the [LICENSE](LICENSE) file for details.
+
+## 📬 Contact
+
+Project Link: [https://github.com/Bakobiibizo/mod-net-modules](https://github.com/Bakobiibizo/mod-net-modules)
+
+## 🙏 Acknowledgments
+
+- Built on [Substrate](https://substrate.io/)
+- Uses [IPFS](https://ipfs.io/) for distributed storage
+- Inspired by the [Substrate Node Template](https://github.com/substrate-developer-hub/substrate-node-template/)
 
 ## Getting Started
 
@@ -75,7 +185,7 @@ cd solochain-template
    Follow the [Conventional Commits](https://www.conventionalcommits.org/) standard:
    ```
    type(scope): description
-   
+
    [optional body]
    [optional footer]
    ```
