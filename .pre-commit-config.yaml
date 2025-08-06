@@ -40,11 +40,11 @@ repos:
     hooks:
     -   id: black
         name: black (python)
-        language: python
-        language_version: python3
-        types: [python]
+        language: system
+        entry: black
         args: [--line-length=88]
-        files: ^(commune-ipfs/|mod_net_client/|modules/test_module/|scripts/).*\.py$
+        types: [python]
+        files: \.(py|pyi|pyx|pxd)$
         exclude: |
             ^(
                 .*/\.git/
@@ -58,13 +58,13 @@ repos:
                 |.*/\.ruff_cache/
             )
 
--   repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.14
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
     hooks:
     -   id: ruff
         name: ruff (python)
-        args: [--fix, --exit-non-zero-on-fix]
-        files: ^(commune-ipfs/|mod_net_client/|modules/test_module/|scripts/).*\.py$
+        types: [python]
+        args: [--fix]
         exclude: |
             ^(
                 .*/\.git/
@@ -83,9 +83,11 @@ repos:
     hooks:
     -   id: isort
         name: isort (python)
-        types: [python]
+        language: system
+        entry: isort
         args: [--profile=black]
-        files: ^(commune-ipfs/|mod_net_client/|modules/test_module/|scripts/).*\.py$
+        types: [python]
+        files: \.(py|pyi|pyx|pxd)$
         exclude: |
             ^(
                 .*/\.git/
