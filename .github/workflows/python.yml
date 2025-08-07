@@ -39,6 +39,8 @@ jobs:
           uv venv
           # Install in development mode with test dependencies
           uv pip install -e ".[dev]"
+          # Verify installation
+          uv run python -c "import app; print('Package installed successfully')"
 
       - name: Run Black
         run: |
@@ -82,10 +84,14 @@ jobs:
           uv venv
           # Install in development mode with test dependencies
           uv pip install -e ".[dev]"
+          # Verify installation
+          uv run python -c "import app; print('Package installed successfully')"
 
       - name: Run tests
         run: |
           cd commune-ipfs
+          # Ensure package is properly installed before running tests
+          uv run python -c "from app.api.modules import router; print('Import test passed')"
           # Run tests with increased verbosity and coverage
           PYTHONPATH=$PWD uv run python -m pytest tests/ -v --cov=app --cov-report=xml
 
