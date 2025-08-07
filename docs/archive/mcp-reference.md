@@ -670,7 +670,7 @@ lets model the tools after the tools in your ide context. it should be somewhere
     - The review protocol is loaded and run to do a comprehensive review of the product ensuring it meets the requirements and functionality was not missed.
 
 11. **Complete**
-    - The projec is complete and the process can begin again.
+    - The project is complete and the process can begin again.
 
 ### Additional Third Party MCP Servers
 
