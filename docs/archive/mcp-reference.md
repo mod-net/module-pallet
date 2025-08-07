@@ -786,7 +786,7 @@ https://github.com/tesla0225/mcp-create
 
 #### MCP Proxy Server
 
-Aggrigate multiple MCP servers into a single endpoint
+Aggregate multiple MCP servers into a single endpoint
 https://github.com/TBXark/mcp-proxy
 
 
