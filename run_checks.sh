@@ -60,6 +60,28 @@ run_command() {
     fi
 }
 
+# Submodule management
+run_submodule_update() {
+    if [ -f ".gitmodules" ]; then
+        print_info "Checking for submodule updates..."
+
+        # Check if any submodules need updating
+        if git submodule status | grep -q '^[+-]'; then
+            print_info "Submodules need updating, syncing..."
+            run_command "git submodule update --init --recursive" "Submodule sync"
+
+            # Check if submodule pointers need updating in main repo
+            if ! git diff --quiet --cached; then
+                print_warning "Submodule pointers may need updating. Consider running 'git add .' and committing changes."
+            fi
+        else
+            print_success "Submodules are up to date"
+        fi
+    else
+        print_info "No submodules found, skipping submodule update"
+    fi
+}
+
 # Rust tools
 run_rust_fmt() {
     if command_exists cargo; then
@@ -213,6 +235,7 @@ run_all_formatters() {
     print_header "Running All Formatters"
     local failed=0
 
+    run_submodule_update || ((failed++))
     run_rust_fmt || ((failed++))
     run_python_black || ((failed++))
     run_python_isort || ((failed++))
@@ -308,19 +331,20 @@ show_menu() {
     printf "  8)  Python Ruff (ruff)\n"
     printf "  9)  Python MyPy (mypy)\n"
     printf "  10) Python Pytest (pytest)\n"
+    printf "  11) Submodule Update (sync submodules)\n"
     printf "\n"
     printf "${YELLOW}By Language:${NC}\n"
-    printf "  11) All Rust Tools\n"
-    printf "  12) All Python Tools\n"
+    printf "  12) All Rust Tools\n"
+    printf "  13) All Python Tools\n"
     printf "\n"
     printf "${CYAN}By Category:${NC}\n"
-    printf "  13) All Formatters (fmt, black, isort)\n"
-    printf "  14) All Linters (clippy, ruff, mypy)\n"
-    printf "  15) All Tests (cargo test, pytest)\n"
-    printf "  16) All Checks (check, clippy, ruff, mypy)\n"
+    printf "  14) All Formatters (fmt, black, isort, submodule sync)\n"
+    printf "  15) All Linters (clippy, ruff, mypy)\n"
+    printf "  16) All Tests (cargo test, pytest)\n"
+    printf "  17) All Checks (check, clippy, ruff, mypy)\n"
     printf "\n"
     printf "${GREEN}Combined:${NC}\n"
-    printf "  17) Everything (formatters + checks + tests)\n"
+    printf "  18) Everything (formatters + checks + tests)\n"
     printf "\n"
     printf "  0)  Exit\n"
     printf "\n"
@@ -344,19 +368,20 @@ interactive_mode() {
             8) run_python_ruff ;;
             9) run_python_mypy ;;
             10) run_python_pytest ;;
-            11) run_all_rust ;;
-            12) run_all_python ;;
-            13) run_all_formatters ;;
-            14) run_all_linters ;;
-            15) run_all_tests ;;
-            16) run_all_checks ;;
-            17) run_everything ;;
+            11) run_submodule_update ;;
+            12) run_all_rust ;;
+            13) run_all_python ;;
+            14) run_all_formatters ;;
+            15) run_all_linters ;;
+            16) run_all_tests ;;
+            17) run_all_checks ;;
+            18) run_everything ;;
             0)
                 print_info "Goodbye!"
                 exit 0
                 ;;
             *)
-                print_error "Invalid choice. Please enter a number between 0-17."
+                print_error "Invalid choice. Please enter a number between 0-18."
                 ;;
         esac
 
@@ -382,6 +407,7 @@ else
         "python-ruff"|"ruff") run_python_ruff ;;
         "python-mypy"|"mypy") run_python_mypy ;;
         "python-pytest"|"pytest"|"test-python") run_python_pytest ;;
+        "submodule"|"submodules"|"sync") run_submodule_update ;;
         "rust"|"all-rust") run_all_rust ;;
         "python"|"all-python") run_all_python ;;
         "formatters"|"format") run_all_formatters ;;
@@ -395,6 +421,7 @@ else
             printf "Commands:\n"
             printf "  Individual tools: rust-fmt, rust-clippy, rust-check, rust-test, rust-doc\n"
             printf "                   python-black, python-isort, python-ruff, python-mypy, python-pytest\n"
+            printf "                   submodule (sync submodules)\n"
             printf "  By language:     rust, python\n"
             printf "  By category:     formatters, linters, tests, checks\n"
             printf "  Combined:        all, everything\n"
