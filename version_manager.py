@@ -58,14 +58,18 @@ class VersionManager:
     def get_current_version(self) -> tuple[int, int, int]:
         """Get the current version from VERSION file."""
         if not self.version_file.exists():
-            print(f"{Colors.YELLOW}VERSION file not found. Creating with version 0.1.0{Colors.RESET}")
+            print(
+                f"{Colors.YELLOW}VERSION file not found. Creating with version 0.1.0{Colors.RESET}"
+            )
             self.version_file.write_text("0.1.0\n")
             return (0, 1, 0)
 
         version_content = self.version_file.read_text().strip()
         match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", version_content)
         if not match:
-            raise ValueError(f"Invalid version format in VERSION file: {version_content}")
+            raise ValueError(
+                f"Invalid version format in VERSION file: {version_content}"
+            )
 
         return tuple(map(int, match.groups()))  # type: ignore[return-value]
 
@@ -86,15 +90,19 @@ class VersionManager:
         # Update version in [project] section
         updated_content = re.sub(
             r'(version\s*=\s*["\'])([^"\']+)(["\'])',
-            f'\\g<1>{version_string}\\g<3>',
-            content
+            f"\\g<1>{version_string}\\g<3>",
+            content,
         )
 
         if updated_content != content:
             self.pyproject_file.write_text(updated_content)
-            print(f"{Colors.GREEN}✓ Updated pyproject.toml version to {version_string}{Colors.RESET}")
+            print(
+                f"{Colors.GREEN}✓ Updated pyproject.toml version to {version_string}{Colors.RESET}"
+            )
 
-    def bump_version(self, bump_type: str, changelog_entry: str | None = None) -> tuple[int, int, int]:
+    def bump_version(
+        self, bump_type: str, changelog_entry: str | None = None
+    ) -> tuple[int, int, int]:
         """Bump version based on type (major, minor, patch)."""
         major, minor, patch = self.get_current_version()
 
@@ -108,7 +116,9 @@ class VersionManager:
         elif bump_type == "patch":
             patch += 1
         else:
-            raise ValueError(f"Invalid bump type: {bump_type}. Must be 'major', 'minor', or 'patch'")
+            raise ValueError(
+                f"Invalid bump type: {bump_type}. Must be 'major', 'minor', or 'patch'"
+            )
 
         self.update_version_file(major, minor, patch)
         self.update_pyproject_toml(major, minor, patch)
@@ -132,10 +142,10 @@ class VersionManager:
         if self.changelog_file.exists():
             existing_content = self.changelog_file.read_text()
             # Insert new entry after the first line (usually "# Changelog")
-            lines = existing_content.split('\n')
-            if lines and lines[0].startswith('# '):
+            lines = existing_content.split("\n")
+            if lines and lines[0].startswith("# "):
                 # Insert after header
-                updated_content = '\n'.join([lines[0], '', new_entry] + lines[1:])
+                updated_content = "\n".join([lines[0], "", new_entry] + lines[1:])
             else:
                 updated_content = new_entry + existing_content
         else:
@@ -149,9 +159,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 {new_entry}"""
 
         self.changelog_file.write_text(updated_content)
-        print(f"{Colors.GREEN}✓ Updated CHANGELOG.md with version {version_string}{Colors.RESET}")
+        print(
+            f"{Colors.GREEN}✓ Updated CHANGELOG.md with version {version_string}{Colors.RESET}"
+        )
 
-    def create_git_tag(self, major: int, minor: int, patch: int, message: str | None = None) -> None:
+    def create_git_tag(
+        self, major: int, minor: int, patch: int, message: str | None = None
+    ) -> None:
         """Create a git tag for the version."""
         version_string = f"v{major}.{minor}.{patch}"
 
@@ -160,13 +174,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
                 subprocess.run(
                     ["git", "tag", "-a", version_string, "-m", message],
                     check=True,
-                    cwd=self.project_root
+                    cwd=self.project_root,
                 )
             else:
                 subprocess.run(
-                    ["git", "tag", version_string],
-                    check=True,
-                    cwd=self.project_root
+                    ["git", "tag", version_string], check=True, cwd=self.project_root
                 )
             print(f"{Colors.GREEN}✓ Created git tag {version_string}{Colors.RESET}")
         except subprocess.CalledProcessError as e:
@@ -187,7 +199,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         """Run interactive version management mode."""
         while True:
             self.display_interactive_menu()
-            choice = input(f"\n{Colors.BOLD}Select an option (1-7): {Colors.RESET}").strip()
+            choice = input(
+                f"\n{Colors.BOLD}Select an option (1-7): {Colors.RESET}"
+            ).strip()
 
             if choice == "1":
                 self.display_current_version()
@@ -212,23 +226,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     def display_interactive_menu(self) -> None:
         """Display the interactive menu."""
         print(f"\n{Colors.BOLD}{'='*60}{Colors.RESET}")
-        print(f"{Colors.BOLD}{Colors.CYAN}    Semantic Version Manager - Interactive Mode{Colors.RESET}")
+        print(
+            f"{Colors.BOLD}{Colors.CYAN}    Semantic Version Manager - Interactive Mode{Colors.RESET}"
+        )
         print(f"{Colors.BOLD}{'='*60}{Colors.RESET}")
 
         try:
             major, minor, patch = self.get_current_version()
-            print(f"{Colors.WHITE}Current Version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}")
+            print(
+                f"{Colors.WHITE}Current Version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}"
+            )
         except Exception:
             print(f"{Colors.WHITE}Current Version: {Colors.RED}Unknown{Colors.RESET}")
 
-        print(f"{Colors.WHITE}Project: {Colors.CYAN}{self.project_root.name}{Colors.RESET}")
+        print(
+            f"{Colors.WHITE}Project: {Colors.CYAN}{self.project_root.name}{Colors.RESET}"
+        )
         print(f"{Colors.BOLD}{'='*60}{Colors.RESET}")
 
         print(f"\n{Colors.BOLD}Available Options:{Colors.RESET}")
         print(f"  {Colors.GREEN}1.{Colors.RESET} Display current version information")
-        print(f"  {Colors.GREEN}2.{Colors.RESET} Bump {Colors.RED}MAJOR{Colors.RESET} version (breaking changes)")
-        print(f"  {Colors.GREEN}3.{Colors.RESET} Bump {Colors.YELLOW}MINOR{Colors.RESET} version (new features)")
-        print(f"  {Colors.GREEN}4.{Colors.RESET} Bump {Colors.BLUE}PATCH{Colors.RESET} version (bug fixes)")
+        print(
+            f"  {Colors.GREEN}2.{Colors.RESET} Bump {Colors.RED}MAJOR{Colors.RESET} version (breaking changes)"
+        )
+        print(
+            f"  {Colors.GREEN}3.{Colors.RESET} Bump {Colors.YELLOW}MINOR{Colors.RESET} version (new features)"
+        )
+        print(
+            f"  {Colors.GREEN}4.{Colors.RESET} Bump {Colors.BLUE}PATCH{Colors.RESET} version (bug fixes)"
+        )
         print(f"  {Colors.GREEN}5.{Colors.RESET} Update changelog manually")
         print(f"  {Colors.GREEN}6.{Colors.RESET} Create git tag")
         print(f"  {Colors.GREEN}7.{Colors.RESET} Exit")
@@ -237,7 +263,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         """Handle interactive version bumping."""
         try:
             current = self.get_current_version()
-            print(f"\n{Colors.BOLD}Current version: {Colors.GREEN}{'.'.join(map(str, current))}{Colors.RESET}")
+            print(
+                f"\n{Colors.BOLD}Current version: {Colors.GREEN}{'.'.join(map(str, current))}{Colors.RESET}"
+            )
 
             # Preview what the new version will be
             major, minor, patch = current
@@ -252,28 +280,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
                 patch += 1
 
             new_version = f"{major}.{minor}.{patch}"
-            print(f"{Colors.BOLD}New version will be: {Colors.CYAN}{new_version}{Colors.RESET}")
+            print(
+                f"{Colors.BOLD}New version will be: {Colors.CYAN}{new_version}{Colors.RESET}"
+            )
 
             # Ask for changelog entry
-            changelog_entry = input(f"\n{Colors.YELLOW}Enter changelog entry (optional): {Colors.RESET}").strip()
+            changelog_entry = input(
+                f"\n{Colors.YELLOW}Enter changelog entry (optional): {Colors.RESET}"
+            ).strip()
 
             # Confirm the action
-            confirm = input(f"\n{Colors.BOLD}Proceed with {bump_type.upper()} version bump? (y/N): {Colors.RESET}").strip().lower()
-
-            if confirm in ['y', 'yes']:
-                new_version_tuple = self.bump_version(
-                    bump_type,
-                    changelog_entry if changelog_entry else None
+            confirm = (
+                input(
+                    f"\n{Colors.BOLD}Proceed with {bump_type.upper()} version bump? (y/N): {Colors.RESET}"
                 )
-                print(f"\n{Colors.GREEN}✓ Successfully bumped to version {'.'.join(map(str, new_version_tuple))}{Colors.RESET}")
+                .strip()
+                .lower()
+            )
+
+            if confirm in ["y", "yes"]:
+                new_version_tuple = self.bump_version(
+                    bump_type, changelog_entry if changelog_entry else None
+                )
+                print(
+                    f"\n{Colors.GREEN}✓ Successfully bumped to version {'.'.join(map(str, new_version_tuple))}{Colors.RESET}"
+                )
 
                 # Ask about git tag
-                tag_confirm = input(f"{Colors.YELLOW}Create git tag for this version? (y/N): {Colors.RESET}").strip().lower()
-                if tag_confirm in ['y', 'yes']:
-                    tag_message = input(f"{Colors.YELLOW}Enter tag message (optional): {Colors.RESET}").strip()
+                tag_confirm = (
+                    input(
+                        f"{Colors.YELLOW}Create git tag for this version? (y/N): {Colors.RESET}"
+                    )
+                    .strip()
+                    .lower()
+                )
+                if tag_confirm in ["y", "yes"]:
+                    tag_message = input(
+                        f"{Colors.YELLOW}Enter tag message (optional): {Colors.RESET}"
+                    ).strip()
                     self.create_git_tag(
-                        *new_version_tuple,
-                        tag_message if tag_message else None
+                        *new_version_tuple, tag_message if tag_message else None
                     )
             else:
                 print(f"{Colors.YELLOW}Version bump cancelled.{Colors.RESET}")
@@ -285,9 +331,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
         """Handle interactive changelog updates."""
         try:
             major, minor, patch = self.get_current_version()
-            print(f"\n{Colors.BOLD}Current version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}")
+            print(
+                f"\n{Colors.BOLD}Current version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}"
+            )
 
-            entry = input(f"{Colors.YELLOW}Enter changelog entry: {Colors.RESET}").strip()
+            entry = input(
+                f"{Colors.YELLOW}Enter changelog entry: {Colors.RESET}"
+            ).strip()
             if entry:
                 self.update_changelog(major, minor, patch, entry)
                 print(f"{Colors.GREEN}✓ Changelog updated successfully{Colors.RESET}")
@@ -303,14 +353,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
             major, minor, patch = self.get_current_version()
             version_string = f"v{major}.{minor}.{patch}"
 
-            print(f"\n{Colors.BOLD}Current version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}")
-            print(f"{Colors.BOLD}Tag will be: {Colors.CYAN}{version_string}{Colors.RESET}")
+            print(
+                f"\n{Colors.BOLD}Current version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}"
+            )
+            print(
+                f"{Colors.BOLD}Tag will be: {Colors.CYAN}{version_string}{Colors.RESET}"
+            )
 
-            message = input(f"{Colors.YELLOW}Enter tag message (optional): {Colors.RESET}").strip()
+            message = input(
+                f"{Colors.YELLOW}Enter tag message (optional): {Colors.RESET}"
+            ).strip()
 
-            confirm = input(f"{Colors.BOLD}Create git tag {version_string}? (y/N): {Colors.RESET}").strip().lower()
+            confirm = (
+                input(
+                    f"{Colors.BOLD}Create git tag {version_string}? (y/N): {Colors.RESET}"
+                )
+                .strip()
+                .lower()
+            )
 
-            if confirm in ['y', 'yes']:
+            if confirm in ["y", "yes"]:
                 self.create_git_tag(major, minor, patch, message if message else None)
             else:
                 print(f"{Colors.YELLOW}Git tag creation cancelled.{Colors.RESET}")
@@ -338,19 +400,19 @@ Version Types:
   major    # Breaking changes (1.0.0 -> 2.0.0)
   minor    # New features (1.0.0 -> 1.1.0)
   patch    # Bug fixes (1.0.0 -> 1.0.1)
-        """
+        """,
     )
 
     parser.add_argument(
         "--project-root",
         type=str,
-        help="Project root directory (default: current directory)"
+        help="Project root directory (default: current directory)",
     )
 
     parser.add_argument(
         "--interactive",
         action="store_true",
-        help="Run in interactive mode with enhanced menu"
+        help="Run in interactive mode with enhanced menu",
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -358,25 +420,15 @@ Version Types:
     # Bump command
     bump_parser = subparsers.add_parser("bump", help="Bump version")
     bump_parser.add_argument(
-        "type",
-        choices=["major", "minor", "patch"],
-        help="Version bump type"
+        "type", choices=["major", "minor", "patch"], help="Version bump type"
     )
     bump_parser.add_argument(
-        "--changelog",
-        type=str,
-        help="Changelog entry for this version"
+        "--changelog", type=str, help="Changelog entry for this version"
     )
     bump_parser.add_argument(
-        "--tag",
-        action="store_true",
-        help="Create git tag after version bump"
+        "--tag", action="store_true", help="Create git tag after version bump"
     )
-    bump_parser.add_argument(
-        "--tag-message",
-        type=str,
-        help="Message for git tag"
-    )
+    bump_parser.add_argument("--tag-message", type=str, help="Message for git tag")
 
     # Current command
     subparsers.add_parser("current", help="Display current version")
