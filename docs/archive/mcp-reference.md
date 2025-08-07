@@ -658,7 +658,7 @@ lets model the tools after the tools in your ide context. it should be somewhere
         - The component is marked as complete.
         - The changes are recorded in git
     - A new component is selected and the process repeats until the application is complete.
-    - Inbetween components the orchrestration protocol is run to update its main progress schedule and task lists ensuring that development is sticking to is on track adjust contexts as needed.
+    - In between components the orchrestration protocol is run to update its main progress schedule and task lists ensuring that development is sticking to is on track adjust contexts as needed.
 
 8. **Development ends**:
     - The testing protocol is loaded and the product is tested  end to end ensuring it meets requirements and functionality was not missed.
