@@ -8,7 +8,7 @@ Cargo.lock
 *.pdb
 
 # Python
-__pycache__/
+*/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -212,3 +212,6 @@ chains/
 
 # IPFS
 .ipfs/
+
+# Rules
+rules.md
