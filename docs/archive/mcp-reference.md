@@ -645,7 +645,7 @@ lets model the tools after the tools in your ide context. it should be somewhere
     - The development workflow broadly looks like this
         - A component is selected for development
         - The development protocol is loaded with approrpiate component context
-        - The developer implments the code updating the component context as they work
+        - The developer implements the code updating the component context as they work
         - The testing protocol is loaded retaining the same context
         - Tests are developed and implemented for the component updating the component context as they work
         - The debugging protocol is loaded retaining the same context
