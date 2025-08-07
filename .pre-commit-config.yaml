@@ -39,10 +39,10 @@ repos:
     rev: 23.12.1
     hooks:
     -   id: black
-        name: black (python)
+        name: black (python auto-fix)
         language: system
-        entry: black
-        args: [--line-length=88]
+        entry: bash
+        args: [-c, 'if command -v black >/dev/null 2>&1; then black --line-length=88 "$@"; elif command -v uv >/dev/null 2>&1; then uv run black --line-length=88 "$@"; else echo "black not found, skipping formatting"; fi', --]
         types: [python]
         files: \.(py|pyi|pyx|pxd)$
         exclude: |
@@ -62,7 +62,7 @@ repos:
     rev: v0.12.7
     hooks:
     -   id: ruff
-        name: ruff (python)
+        name: ruff (python auto-fix)
         types: [python]
         args: [--fix]
         exclude: |
@@ -82,10 +82,10 @@ repos:
     rev: 6.0.1
     hooks:
     -   id: isort
-        name: isort (python)
+        name: isort (python auto-fix)
         language: system
-        entry: isort
-        args: [--profile=black]
+        entry: bash
+        args: [-c, 'if command -v isort >/dev/null 2>&1; then isort --profile=black "$@"; elif command -v uv >/dev/null 2>&1; then uv run isort --profile=black "$@"; else echo "isort not found, skipping import sorting"; fi', --]
         types: [python]
         files: \.(py|pyi|pyx|pxd)$
         exclude: |
@@ -107,8 +107,8 @@ repos:
 -   repo: local
     hooks:
     -   id: rustfmt
-        name: rustfmt
-        entry: bash -c 'find . -name "*.rs" -not -path "*/target/*" -not -path "*/.git/*" -exec rustfmt --edition=2021 --check {} + || exit 1'
+        name: rustfmt (auto-fix)
+        entry: bash -c 'find . -name "*.rs" -not -path "*/target/*" -not -path "*/.git/*" -exec rustfmt --edition=2021 {} +'
         language: system
         types: [rust]
         pass_filenames: false
