@@ -529,7 +529,7 @@ We will have to dynamically parse the contents of the message from the tool call
 A group of tools that work within a specific scope.
     - ToolSets are provided to the model through the model context protocol(MCP) and are implemented as servers that will provide their service to the mcp client.
     - They are selected and injected into the model context by the orchestrator protocol writing them into  FSM Protocol `Available Tools` based on the `context` they will be working in.
-    - ToolSets should be grouped into categorically related groups and the context manager should detetect available protocols making sure only their name and breif description appear in the available toolset section of the protocol.
++    - ToolSets should be grouped into categorically related groups and the context manager should detect available protocols making sure only their name and brief description appear in the available toolset section of the protocol.
     - When a toolset is called then it should return a list of available tools, their description and arguments through the `tools/list` rpc method. The toolset should be structured as an RPC call:
 
 
