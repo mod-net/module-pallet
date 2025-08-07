@@ -521,7 +521,7 @@ We will have to dynamically parse the contents of the message from the tool call
 
 ### Tool Commands
 
-We need a convention for running commnads from the model output. We can use `!` prepended to a string to indicate that this h how it is a command to run. We can use the same syntax as shell commands to run commands.
++We need a convention for running commands from the model output. We can use `!` prepended to a string to indicate that this h how it is a command to run. We can use the same syntax as shell commands to run commands.
 
 
 ## ToolSets
