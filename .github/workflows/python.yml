@@ -37,11 +37,8 @@ jobs:
         run: |
           cd commune-ipfs
           uv venv
-          source .venv/bin/activate
           # Install in development mode with test dependencies
           uv pip install -e ".[dev]"
-          # Explicitly add the project root to PYTHONPATH
-          echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       - name: Run Black
         run: |
@@ -83,19 +80,14 @@ jobs:
         run: |
           cd commune-ipfs
           uv venv
-          source .venv/bin/activate
           # Install in development mode with test dependencies
           uv pip install -e ".[dev]"
-          # Explicitly add the project root to PYTHONPATH
-          echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
           cd commune-ipfs
-          # Set PYTHONPATH to include the project root
-          export PYTHONPATH=$PWD
           # Run tests with increased verbosity and coverage
-          uv run python -m pytest tests/ -v --cov=app --cov-report=xml
+          PYTHONPATH=$PWD uv run python -m pytest tests/ -v --cov=app --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
