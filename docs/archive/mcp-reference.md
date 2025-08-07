@@ -4,7 +4,7 @@
 
 MCP is a protocol that allows the model to access tools and resources through a RPC interface. It is implemented as a server that will provide their service to the mcp client through RPC Commands.
 
-There is a `rmcp` MCP library that can be used if we like in `/home/bakobi/repos/mcp/rust-sdk` but there are a lot of sharpe edges with their implementation and so far I have prefered to just implement my own RPC client and server for the tools prefering StdIO transports when possible but SSE and WebSockets are also available.
+There is a `rmcp` MCP library that can be used if we like in `/home/bakobi/repos/mcp/rust-sdk` but there are a lot of sharp edges with their implementation and so far I have preferred to just implement my own RPC client and server for the tools preferring StdIO transports when possible but SSE and WebSockets are also available.
 
 ### Tools:
 
