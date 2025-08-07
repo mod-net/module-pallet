@@ -663,7 +663,7 @@ lets model the tools after the tools in your ide context. it should be somewhere
 8. **Development ends**:
     - The testing protocol is loaded and the product is tested  end to end ensuring it meets requirements and functionality was not missed.
 
-9. **Final documenation**
+9. **Final documentation**
     - The documentation protocol is loaded and run to document the product ensuring comprehensive doc strings, detailed documentation and easy to understand readme is generated.
 
 10. **Final review**
