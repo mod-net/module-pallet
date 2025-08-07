@@ -140,6 +140,17 @@ run_python_ruff() {
     fi
 }
 
+run_python_ruff_fix() {
+    if command_exists ruff; then
+        run_command "cd '$PROJECT_ROOT' && ruff check . --fix --unsafe-fixes" "Python auto-fix (ruff --fix --unsafe-fixes)"
+    elif command_exists uv; then
+        run_command "cd '$PROJECT_ROOT' && uv run ruff check . --fix --unsafe-fixes" "Python auto-fix (ruff --fix --unsafe-fixes via uv)"
+    else
+        print_error "ruff not found. Please install ruff or uv."
+        return 1
+    fi
+}
+
 run_python_mypy() {
     if command_exists mypy; then
         run_command "cd '$PROJECT_ROOT' && mypy ." "Python type checking (mypy)"
@@ -205,6 +216,7 @@ run_all_formatters() {
     run_rust_fmt || ((failed++))
     run_python_black || ((failed++))
     run_python_isort || ((failed++))
+    run_python_ruff_fix || ((failed++))
 
     if [ $failed -eq 0 ]; then
         print_success "All formatters completed successfully"
