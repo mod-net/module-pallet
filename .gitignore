@@ -212,3 +212,6 @@ chains/
 
 # IPFS
 .ipfs/
+
+# Rules
+rules.md

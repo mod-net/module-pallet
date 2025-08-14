@@ -9,7 +9,6 @@ variables and sensible defaults.
 
 import os
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 def _get_default_ws_url() -> str:

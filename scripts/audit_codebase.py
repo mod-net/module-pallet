@@ -32,11 +32,9 @@ Example:
 import argparse
 import os
 import re
-import subprocess
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 
 @dataclass
@@ -56,7 +54,7 @@ class CodebaseAuditor:
 
     def __init__(self, root_dir: str):
         self.root_dir = Path(root_dir).resolve()
-        self.results: List[AuditResult] = []
+        self.results: list[AuditResult] = []
 
         # Audit patterns
         self.patterns = {
@@ -207,7 +205,7 @@ class CodebaseAuditor:
 
     def search_pattern_in_file(
         self, file_path: Path, pattern_name: str
-    ) -> List[AuditResult]:
+    ) -> list[AuditResult]:
         """Search for a specific pattern in a file."""
         results = []
 
@@ -220,7 +218,7 @@ class CodebaseAuditor:
         description = pattern_config["description"]
 
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 for line_num, line in enumerate(f, 1):
                     line = line.rstrip()
                     if re.search(regex, line, re.IGNORECASE):
@@ -241,7 +239,7 @@ class CodebaseAuditor:
 
         return results
 
-    def find_python_files(self) -> List[Path]:
+    def find_python_files(self) -> list[Path]:
         """Find all Python files in the directory."""
         python_files = []
 
@@ -251,7 +249,7 @@ class CodebaseAuditor:
 
         return python_files
 
-    def audit_file(self, file_path: Path) -> List[AuditResult]:
+    def audit_file(self, file_path: Path) -> list[AuditResult]:
         """Audit a single file for all patterns."""
         results = []
 
@@ -260,7 +258,7 @@ class CodebaseAuditor:
 
         return results
 
-    def run_audit(self) -> Dict[str, List[AuditResult]]:
+    def run_audit(self) -> dict[str, list[AuditResult]]:
         """Run the complete audit."""
         print(f"🔍 Starting codebase audit in: {self.root_dir}")
 
@@ -279,11 +277,11 @@ class CodebaseAuditor:
 
         return dict(grouped_results)
 
-    def print_summary(self, results: Dict[str, List[AuditResult]]):
+    def print_summary(self, results: dict[str, list[AuditResult]]):
         """Print audit summary."""
         total_issues = sum(len(issues) for issues in results.values())
 
-        print(f"\n📊 Audit Summary")
+        print("\n📊 Audit Summary")
         print("=" * 50)
         print(f"Total issues found: {total_issues}")
 
@@ -292,7 +290,7 @@ class CodebaseAuditor:
             return
 
         # Count by severity
-        severity_counts: Dict[str, int] = {}
+        severity_counts: dict[str, int] = {}
         for issues in results.values():
             for issue in issues:
                 severity = issue.severity
@@ -302,13 +300,13 @@ class CodebaseAuditor:
         print(f"🟡 Medium severity: {severity_counts.get('medium', 0)}")
         print(f"🟢 Low severity: {severity_counts.get('low', 0)}")
 
-        print(f"\n📋 Issues by Category:")
-        results: List[str] = []
+        print("\n📋 Issues by Category:")
+        results: list[str] = []
         for category, issues in sorted(results.items()):
             results.append(f"  {category}: {len(issues)} issues")
 
     def print_detailed_results(
-        self, results: Dict[str, List[AuditResult]], max_per_category: int = 10
+        self, results: dict[str, list[AuditResult]], max_per_category: int = 10
     ):
         """Print detailed audit results."""
         for category, issues in sorted(results.items()):
@@ -319,7 +317,7 @@ class CodebaseAuditor:
             print("-" * 60)
 
             # Show up to max_per_category issues
-            for i, issue in enumerate(issues[:max_per_category]):
+            for _i, issue in enumerate(issues[:max_per_category]):
                 severity_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
                     issue.severity, "⚪"
                 )
@@ -332,7 +330,7 @@ class CodebaseAuditor:
                 print(f"   ... and {len(issues) - max_per_category} more issues")
                 print()
 
-    def export_to_json(self, results: Dict[str, List[AuditResult]], output_file: str):
+    def export_to_json(self, results: dict[str, list[AuditResult]], output_file: str):
         """Export results to JSON file."""
         import json
 

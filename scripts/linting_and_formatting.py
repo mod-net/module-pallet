@@ -1,5 +1,4 @@
 import subprocess
-from subprocess import PIPE
 
 commands = {
     "black": "black .",
@@ -12,7 +11,7 @@ if __name__ == "__main__":
     results = []
     for command in commands.values():
         command = command.split(" ")
-        result = subprocess.run(command, stdout=PIPE, stderr=PIPE)
+        result = subprocess.run(command, capture_output=True)
         results.append(result)
 
     for result in results:
