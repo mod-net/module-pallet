@@ -215,3 +215,9 @@ chains/
 
 # Rules
 rules.md
+
+# Internal docs
+docs/INFRASTRUCTURE_UPDATE.md
+
+# Environment configuration (contains sensitive data)
+.env
