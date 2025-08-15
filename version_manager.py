@@ -87,11 +87,13 @@ class VersionManager:
         content = self.pyproject_file.read_text()
         version_string = f"{major}.{minor}.{patch}"
 
-        # Update version in [project] section
+        # Update version in [project] section only - more specific regex
+        # This matches the project version but not tool-specific versions like ruff's target-version
         updated_content = re.sub(
-            r'(version\s*=\s*["\'])([^"\']+)(["\'])',
+            r'(\[project\].*?version\s*=\s*["\'])([^"\']+)(["\'])',
             f"\\g<1>{version_string}\\g<3>",
             content,
+            flags=re.DOTALL,
         )
 
         if updated_content != content:

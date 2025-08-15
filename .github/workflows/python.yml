@@ -8,6 +8,7 @@ on:
       - 'pyproject.toml'
       - 'requirements.txt'
       - '.github/workflows/python.yml'
+      - '!modules/**'
   pull_request:
     branches: [ "main" ]
     paths:
@@ -15,6 +16,7 @@ on:
       - 'pyproject.toml'
       - 'requirements.txt'
       - '.github/workflows/python.yml'
+      - '!modules/**'
 
 jobs:
   lint:
