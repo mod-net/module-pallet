@@ -26,6 +26,18 @@ print_status() {
     echo -e "${color}${message}${NC}"
 }
 
+# Check for required dependencies
+check_dependencies() {
+    if ! command -v jq >/dev/null 2>&1; then
+        print_status $YELLOW "⚠️  jq is not installed. For more reliable service status checks, install jq:"
+        print_status $BLUE "   Ubuntu/Debian: sudo apt-get install jq"
+        print_status $BLUE "   CentOS/RHEL: sudo yum install jq"
+        print_status $BLUE "   macOS: brew install jq"
+        print_status $YELLOW "   Falling back to grep-based service status checks."
+        echo
+    fi
+}
+
 # Load environment variables if .env file exists
 if [[ -f "$PROJECT_ROOT/.env" ]]; then
     set -a  # automatically export all variables
@@ -56,8 +68,13 @@ declare -A SERVICES=(
 # Function to check if service is running
 is_service_running() {
     local service_name=$1
-    pm2 describe "$service_name" >/dev/null 2>&1 && \
-    [[ $(pm2 describe "$service_name" | grep -c "status.*online") -gt 0 ]]
+    # Check if jq is available, fallback to grep if not
+    if command -v jq >/dev/null 2>&1; then
+        pm2 jlist | jq -e --arg name "$service_name" '.[] | select(.name == $name and .pm2_env.status == "online")' >/dev/null 2>&1
+    else
+        pm2 describe "$service_name" >/dev/null 2>&1 && \
+        [[ $(pm2 describe "$service_name" | grep -c "status.*online") -gt 0 ]]
+    fi
 }
 
 # Function to start a single service
@@ -335,12 +352,13 @@ save_config() {
 
     pm2 save
 
-    # Setup PM2 startup script
-    if pm2 startup | grep -q "sudo"; then
-        print_status $YELLOW "⚠️  To enable auto-start on boot, run the following command:"
-        pm2 startup
+    # Setup PM2 startup script using robust detection
+    pm2 startup --detect
+    if [ $? -eq 0 ]; then
+        print_status $GREEN "✅ PM2 startup configuration saved and auto-start enabled"
     else
-        print_status $GREEN "✅ PM2 startup configuration saved"
+        print_status $YELLOW "⚠️  PM2 could not automatically configure auto-start. Please run the command suggested by 'pm2 startup' manually."
+        pm2 startup
     fi
 }
 
@@ -375,6 +393,9 @@ show_help() {
 main() {
     local command=${1:-"help"}
     local service_name=$2
+
+    # Check dependencies on first run
+    check_dependencies
 
     case $command in
         "start")

@@ -228,6 +228,20 @@
             background: #e0e7ff;
         }
 
+        .copy-btn {
+            margin-left: 8px;
+            padding: 2px 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+            background: #f3f3f3;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background: #e0e0e0;
+        }
+
         .footer {
             text-align: center;
             margin-top: 40px;
@@ -344,8 +358,31 @@
         let currentRpcUrl = RPC_URL;
         let requestId = 1;
 
+        // Add an error message div and disable UI elements if needed
+        function showRpcError(message) {
+            let errorDiv = document.getElementById('rpc-error');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'rpc-error';
+                errorDiv.style.color = 'red';
+                errorDiv.style.margin = '10px 0';
+                document.body.prepend(errorDiv);
+            }
+            errorDiv.textContent = message;
+            // Disable relevant UI elements (example: disable all buttons)
+            document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        }
+
+        function hideRpcError() {
+            const errorDiv = document.getElementById('rpc-error');
+            if (errorDiv) errorDiv.textContent = '';
+            // Re-enable UI elements
+            document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+        }
+
         // Try to determine the best RPC URL to use
         async function detectRpcUrl() {
+            let rpcAvailable = false;
             try {
                 const response = await fetch(RPC_URL, {
                     method: 'POST',
@@ -359,12 +396,52 @@
                 });
                 if (response.ok) {
                     currentRpcUrl = RPC_URL;
-                    return;
+                    hideRpcError();
+                    rpcAvailable = true;
+                } else {
+                    // Try external RPC URL
+                    const extResponse = await fetch(EXTERNAL_RPC_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: 1,
+                            jsonrpc: '2.0',
+                            method: 'system_health',
+                            params: []
+                        })
+                    });
+                    if (extResponse.ok) {
+                        currentRpcUrl = EXTERNAL_RPC_URL;
+                        hideRpcError();
+                        rpcAvailable = true;
+                    }
                 }
-            } catch (e) {}
-
-            // Fallback to external URL
-            currentRpcUrl = EXTERNAL_RPC_URL;
+            } catch (err) {
+                // Try external RPC URL if local fails
+                try {
+                    const extResponse = await fetch(EXTERNAL_RPC_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: 1,
+                            jsonrpc: '2.0',
+                            method: 'system_health',
+                            params: []
+                        })
+                    });
+                    if (extResponse.ok) {
+                        currentRpcUrl = EXTERNAL_RPC_URL;
+                        hideRpcError();
+                        rpcAvailable = true;
+                    }
+                } catch (err2) {
+                    // Both endpoints unreachable
+                    showRpcError('Unable to connect to blockchain RPC endpoint. Please check your network or node status.');
+                }
+            }
+            if (!rpcAvailable) {
+                showRpcError('Unable to connect to blockchain RPC endpoint. Please check your network or node status.');
+            }
         }
 
         async function sendRpcRequest(method = null, params = null) {
@@ -513,7 +590,25 @@
                     if (headerData.result) {
                         const blockNumber = parseInt(headerData.result.number, 16);
                         document.getElementById('best-block').textContent = blockNumber.toString();
-                        document.getElementById('block-hash').textContent = headerData.result.parentHash.substring(0, 20) + '...';
+
+                        const fullHash = headerData.result.parentHash;
+                        const blockHashElem = document.getElementById('block-hash');
+                        blockHashElem.textContent = fullHash.substring(0, 20) + '...';
+
+                        // Add copy button for block hash
+                        let copyBtn = document.getElementById('copy-block-hash');
+                        if (!copyBtn) {
+                            copyBtn = document.createElement('button');
+                            copyBtn.id = 'copy-block-hash';
+                            copyBtn.textContent = 'Copy';
+                            copyBtn.className = 'copy-btn';
+                            blockHashElem.parentNode.appendChild(copyBtn);
+                        }
+                        copyBtn.onclick = function() {
+                            navigator.clipboard.writeText(fullHash);
+                            copyBtn.textContent = 'Copied!';
+                            setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1200);
+                        };
                     }
                 }
 
@@ -575,12 +670,15 @@
         // Start when page loads
         window.addEventListener('load', init);
 
-        // Allow Enter key to send RPC request
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-                sendRpcRequest();
-            }
-        });
+        // Allow Enter key to send RPC request only when focused on the RPC input field
+        const rpcInput = document.getElementById('rpc-params');
+        if (rpcInput) {
+            rpcInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                    sendRpcRequest();
+                }
+            });
+        }
     </script>
 </body>
 </html>

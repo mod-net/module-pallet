@@ -39,7 +39,7 @@ repos:
         args: [clippy, --all-targets, --all-features, --, -D, warnings]
         language: system
         types: [rust]
-        exclude: commune-ipfs/
+        exclude: ^(commune-ipfs/|modules/)
         pass_filenames: false
     -   id: python-ruff-check
         name: Python linting (ruff check only)
@@ -47,12 +47,12 @@ repos:
         args: [run, ruff, check, --no-fix]
         language: system
         types: [python]
-        exclude: commune-ipfs/
+        exclude: ^(commune-ipfs/|modules/)
     -   id: python-mypy
         name: Python type checking (mypy)
         entry: uv
         args: [run, mypy, .]
         language: system
         types: [python]
-        exclude: commune-ipfs/
+        exclude: ^(commune-ipfs/|modules/)
         pass_filenames: false

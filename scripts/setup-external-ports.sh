@@ -27,8 +27,9 @@ setup_port_forwarding() {
 
         echo "Forwarding external port $external_port to internal port $internal_port"
 
-        # Forward incoming traffic from external port to internal port
-        sudo iptables -t nat -A PREROUTING -p tcp --dport $external_port -j REDIRECT --to-port $internal_port
+        # Forward incoming traffic from external port to internal port using DNAT
+        EXTERNAL_IP=$(hostname -I | awk '{print $1}')
+        sudo iptables -t nat -A PREROUTING -p tcp --dport $external_port -j DNAT --to-destination ${EXTERNAL_IP}:$internal_port
 
         # Allow traffic on external port
         sudo ufw allow $external_port/tcp
@@ -51,7 +52,8 @@ remove_port_forwarding() {
         echo "Removing forwarding for port $external_port"
 
         # Remove iptables rule (ignore errors if rule doesn't exist)
-        sudo iptables -t nat -D PREROUTING -p tcp --dport $external_port -j REDIRECT --to-port $internal_port 2>/dev/null || true
+        EXTERNAL_IP=$(hostname -I | awk '{print $1}')
+        sudo iptables -t nat -D PREROUTING -p tcp --dport $external_port -j DNAT --to-destination ${EXTERNAL_IP}:$internal_port 2>/dev/null || true
 
         # Remove ufw rule
         sudo ufw delete allow $external_port/tcp 2>/dev/null || true
@@ -69,7 +71,7 @@ show_port_status() {
         internal_port="${PORT_MAP[$external_port]}"
 
         # Check if port is listening
-        if netstat -ln | grep -q ":$internal_port "; then
+        if ss -ln | grep -q ":$internal_port "; then
             status="✓ LISTENING"
         else
             status="✗ NOT LISTENING"

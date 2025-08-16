@@ -1,6 +1,6 @@
 [project]
 name = "mod-net-client"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python client for the Mod-Net module registry"
 requires-python = ">=3.11"
 authors = [
@@ -8,7 +8,7 @@ authors = [
 ]
 dependencies = [
     "substrate-interface>=1.7.0",
-    "ipfshttpclient>=0.8.0a2",
+    "commune-ipfs @ git+https://github.com/Bakobiibizo/commune-ipfs.git",
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
     "pydantic>=2.4.0",
@@ -30,6 +30,9 @@ addopts = "--asyncio-mode=auto"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [dependency-groups]
 dev = [
@@ -63,6 +66,7 @@ exclude = '''
     | target
     | commune-ipfs
     | scripts
+    | modules
   )/
 )
 '''
@@ -82,7 +86,8 @@ skip_glob = [
     "**/site-packages/*",
     "**/.venv/*",
     "**/venv/*",
-    "scripts/*"
+    "scripts/*",
+    "modules/*"
 ]
 skip_gitignore = true
 
@@ -99,6 +104,7 @@ exclude = [
     ".git",
     "__pycache__",
     "scripts",
+    "modules",
 ]
 
 [tool.ruff.lint]
@@ -134,7 +140,7 @@ max-line-length = 88
 good-names = ["i", "j", "k", "ex", "Run", "_", "id", "db", "app"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "0.2.0"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = true
@@ -156,6 +162,7 @@ exclude = [
     "__pycache__",
     "commune-ipfs",
     "scripts",
+    "modules",
 ]
 
 [tool.uv.workspace]
