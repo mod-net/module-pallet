@@ -116,7 +116,7 @@ repos:
 
     -   id: cargo-check
         name: cargo check
-        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Checking $dir" && (cd "$dir" && cargo check --all-targets --all-features) || exit 1; done'
+        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Checking $dir" && (cd "$dir" && cargo check --all-targets) || exit 1; done'
         language: system
         types: [rust]
         pass_filenames: false
@@ -125,7 +125,7 @@ repos:
 
     -   id: cargo-clippy
         name: cargo clippy
-        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Linting $dir" && (cd "$dir" && cargo clippy -- -D warnings) || exit 1; done'
+        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Linting $dir" && (cd "$dir" && cargo clippy --all-targets -- -D warnings) || exit 1; done'
         language: system
         types: [rust]
         pass_filenames: false

@@ -1,13 +1,18 @@
+#[cfg(feature = "runtime-benchmarks")]
+use crate::benchmarking::{inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder};
 use crate::{
-    benchmarking::{inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder},
     chain_spec,
     cli::{Cli, Subcommand},
     service,
 };
+#[cfg(feature = "runtime-benchmarks")]
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
-use mod_net_runtime::{Block, EXISTENTIAL_DEPOSIT};
+use mod_net_runtime::Block;
+#[cfg(feature = "runtime-benchmarks")]
+use mod_net_runtime::EXISTENTIAL_DEPOSIT;
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
+#[cfg(feature = "runtime-benchmarks")]
 use sp_keyring::Sr25519Keyring;
 
 impl SubstrateCli for Cli {
@@ -123,6 +128,7 @@ pub fn run() -> sc_cli::Result<()> {
                 Ok((cmd.run(client, backend, Some(aux_revert)), task_manager))
             })
         }
+        #[cfg(feature = "runtime-benchmarks")]
         Some(Subcommand::Benchmark(cmd)) => {
             let runner = cli.create_runner(cmd)?;
 
@@ -202,7 +208,7 @@ pub fn run() -> sc_cli::Result<()> {
         None => {
             let runner = cli.create_runner(&cli.run)?;
             runner.run_node_until_exit(|config| async move {
-                match config.network.network_backend.clone() {
+                match config.network.network_backend {
                     sc_network::config::NetworkBackendType::Libp2p => service::new_full::<
                         sc_network::NetworkWorker<
                             mod_net_runtime::opaque::Block,

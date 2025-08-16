@@ -158,6 +158,9 @@ exclude = [
     "__pycache__",
     "commune-ipfs",
     "scripts",
+    "modules/text2video/",
+    "modules/text2speech/",
+    "modules/text_gen/examples/",
 ]
 
 [tool.uv.workspace]

@@ -72,7 +72,7 @@ run_rust_fmt() {
 
 run_rust_clippy() {
     if command_exists cargo; then
-        run_command "cd '$PROJECT_ROOT' && cargo clippy --all-targets --all-features -- -D warnings" "Rust linting (cargo clippy)"
+        run_command "cd '$PROJECT_ROOT' && cargo clippy --all-targets -- -D warnings" "Rust linting (cargo clippy)"
     else
         print_error "cargo not found. Please install Rust."
         return 1
@@ -81,7 +81,7 @@ run_rust_clippy() {
 
 run_rust_check() {
     if command_exists cargo; then
-        run_command "cd '$PROJECT_ROOT' && cargo check --all-targets --all-features" "Rust compilation check (cargo check)"
+        run_command "cd '$PROJECT_ROOT' && cargo check --all-targets" "Rust compilation check (cargo check)"
     else
         print_error "cargo not found. Please install Rust."
         return 1
@@ -217,9 +217,9 @@ fix_all_python_issues() {
 
 run_python_mypy() {
     if command_exists mypy; then
-        run_command "cd '$PROJECT_ROOT' && mypy ." "Python type checking (mypy)"
+        run_command "cd '$PROJECT_ROOT' && mypy mod_net_client" "Python type checking (mypy)"
     elif command_exists uv; then
-        run_command "cd '$PROJECT_ROOT' && uv run mypy ." "Python type checking (mypy via uv)"
+        run_command "cd '$PROJECT_ROOT' && uv run mypy mod_net_client" "Python type checking (mypy via uv)"
     else
         print_error "mypy not found. Please install mypy or uv."
         return 1

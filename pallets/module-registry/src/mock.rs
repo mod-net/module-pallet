@@ -53,7 +53,6 @@ parameter_types! {
 }
 
 impl pallet_module_registry::Config for Test {
-    type RuntimeEvent = RuntimeEvent;
     type WeightInfo = ();
     type MaxKeyLength = MaxKeyLength;
     type MaxCidLength = MaxCidLength;
