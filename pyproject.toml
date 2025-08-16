@@ -64,7 +64,6 @@ exclude = '''
     | build
     | dist
     | target
-    | commune-ipfs
     | scripts
     | modules
   )/
@@ -160,7 +159,6 @@ exclude = [
     "dist",
     ".git",
     "__pycache__",
-    "commune-ipfs",
     "scripts",
     "modules",
 ]

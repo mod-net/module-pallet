@@ -26,7 +26,6 @@ from .config import get_config
 
 # Add paths for imports
 sys.path.insert(0, str(Path(__file__).parent / "modules" / "test_module"))
-sys.path.insert(0, str(Path(__file__).parent / "commune-ipfs"))
 
 from module import TestModule
 
@@ -126,7 +125,7 @@ class RealChainIntegrationTest:
         except Exception as e:
             print(f"❌ Failed to connect to commune-ipfs backend: {e}")
             print(
-                "   Make sure backend is running: cd commune-ipfs && uv run python main.py"
+                "   Make sure backend is running: uv run commune-ipfs --port 8000"
             )
             return False
 
@@ -297,7 +296,7 @@ class RealChainIntegrationTest:
 
         if not ipfs_backend_ok:
             print("\n❌ commune-ipfs backend is not running or accessible")
-            print("   Start with: cd commune-ipfs && uv run python main.py")
+            print("   Start with: uv run commune-ipfs --port 8000")
             return False
 
         print("\n✅ All prerequisites are running!")

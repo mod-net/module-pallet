@@ -17,7 +17,6 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-COMMUNE_IPFS_DIR="$PROJECT_ROOT/commune-ipfs"
 
 # Function to print colored output (defined early for use in config loading)
 print_status() {
@@ -58,7 +57,7 @@ fi
 declare -A SERVICES=(
     ["chain"]="cd $PROJECT_ROOT && ./target/release/solochain-template-node --dev --rpc-external --rpc-cors all"
     ["ipfs"]="ipfs daemon"
-    ["ipfs-worker"]="cd $COMMUNE_IPFS_DIR && COMMUNE_IPFS_HOST=0.0.0.0 COMMUNE_IPFS_PORT=8003 uv run python main.py"
+    ["ipfs-worker"]="cd $PROJECT_ROOT && COMMUNE_IPFS_HOST=0.0.0.0 COMMUNE_IPFS_PORT=8003 uv run commune-ipfs"
     ["blockchain-explorer"]="cd $PROJECT_ROOT/webui && python3 -m http.server 8081"
     ["ngrok"]="ngrok start --all --config /home/com/.config/ngrok/ngrok.yml"
 )
@@ -111,17 +110,16 @@ start_service() {
             fi
             ;;
         "ipfs-worker")
-            # Check if commune-ipfs directory exists and dependencies are installed
-            if [[ ! -d "$COMMUNE_IPFS_DIR" ]]; then
-                print_status $RED "❌ commune-ipfs directory not found at $COMMUNE_IPFS_DIR"
-                return 1
-            fi
-
-            # Install dependencies if needed
-            if [[ ! -d "$COMMUNE_IPFS_DIR/.venv" ]]; then
-                print_status $YELLOW "🔧 Installing IPFS worker dependencies..."
-                cd "$COMMUNE_IPFS_DIR"
+            # Check if commune-ipfs package is installed
+            if ! uv run python -c "import commune_ipfs" >/dev/null 2>&1; then
+                print_status $RED "❌ commune-ipfs package not found. Installing..."
+                print_status $YELLOW "🔧 Installing commune-ipfs package..."
+                cd "$PROJECT_ROOT"
                 uv sync
+                if ! uv run python -c "import commune_ipfs" >/dev/null 2>&1; then
+                    print_status $RED "❌ Failed to install commune-ipfs package"
+                    return 1
+                fi
             fi
             ;;
         "ngrok")
