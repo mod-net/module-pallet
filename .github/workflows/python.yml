@@ -35,10 +35,7 @@ jobs:
         run: pip install uv
 
       - name: Install dependencies
-        run: |
-          uv sync --dev
-          # Verify installation
-          uv run python -c "import app; print('Package installed successfully')"
+        run: uv sync --dev
 
       - name: Run Black
         run: uv run black . --check
@@ -68,20 +65,15 @@ jobs:
         run: pip install uv
 
       - name: Install dependencies
-        run: |
-          uv sync --dev
-          # Verify installation
-          uv run python -c "import app; print('Package installed successfully')"
+        run: uv sync --dev
 
       - name: Run tests
         run: |
-          # Ensure package is properly installed before running tests
-          uv run python -c "from app.api.modules import router; print('Import test passed')"
           # Run tests with increased verbosity and coverage
-          uv run python -m pytest tests/ -v --cov=app --cov-report=xml
+          uv run python -m pytest tests/ -v --cov=mod_net_client --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: Bakobiibizo/commune-ipfs
+          slug: mod-net/module-pallet
