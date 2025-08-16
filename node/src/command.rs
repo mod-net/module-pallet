@@ -5,9 +5,9 @@ use crate::{
     service,
 };
 use frame_benchmarking_cli::{BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE};
+use mod_net_runtime::{Block, EXISTENTIAL_DEPOSIT};
 use sc_cli::SubstrateCli;
 use sc_service::PartialComponents;
-use solochain_template_runtime::{Block, EXISTENTIAL_DEPOSIT};
 use sp_keyring::Sr25519Keyring;
 
 impl SubstrateCli for Cli {
@@ -202,18 +202,19 @@ pub fn run() -> sc_cli::Result<()> {
         None => {
             let runner = cli.create_runner(&cli.run)?;
             runner.run_node_until_exit(|config| async move {
-                match config.network.network_backend.unwrap_or_default() {
-					sc_network::config::NetworkBackendType::Libp2p => service::new_full::<
-						sc_network::NetworkWorker<
-							solochain_template_runtime::opaque::Block,
-							<solochain_template_runtime::opaque::Block as sp_runtime::traits::Block>::Hash,
-						>,
-					>(config)
-					.map_err(sc_cli::Error::Service),
-					sc_network::config::NetworkBackendType::Litep2p =>
-						service::new_full::<sc_network::Litep2pNetworkBackend>(config)
-							.map_err(sc_cli::Error::Service),
-				}
+                match config.network.network_backend.clone() {
+                    sc_network::config::NetworkBackendType::Libp2p => service::new_full::<
+                        sc_network::NetworkWorker<
+                            mod_net_runtime::opaque::Block,
+                            <mod_net_runtime::opaque::Block as sp_runtime::traits::Block>::Hash,
+                        >,
+                    >(config)
+                    .map_err(sc_cli::Error::Service),
+                    sc_network::config::NetworkBackendType::Litep2p => {
+                        service::new_full::<sc_network::Litep2pNetworkBackend>(config)
+                            .map_err(sc_cli::Error::Service)
+                    }
+                }
             })
         }
     }

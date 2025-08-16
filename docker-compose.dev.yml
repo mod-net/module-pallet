@@ -1,0 +1,73 @@
+version: '3.8'
+
+# Development-specific overrides
+services:
+  mod-net-node:
+    build:
+      target: development
+    volumes:
+      - .:/workspace
+      - dev_cargo_cache:/usr/local/cargo/registry
+      - dev_target_cache:/workspace/target
+    environment:
+      - RUST_LOG=debug
+    command: [
+      "cargo", "run", "--bin", "modnet-node", "--",
+      "--dev",
+      "--ws-external", 
+      "--rpc-external",
+      "--rpc-cors=all",
+      "--prometheus-external",
+      "--base-path=/data",
+      "--tmp"
+    ]
+
+  mod-net-client:
+    build:
+      target: development
+    volumes:
+      - .:/workspace
+      - ./mod_net_client:/workspace/mod_net_client
+    environment:
+      - PYTHONPATH=/workspace
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    command: ["python", "-m", "uvicorn", "mod_net_client.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  # Hot-reload file watcher for Rust
+  rust-watcher:
+    build:
+      context: .
+      target: development
+    container_name: mod-net-rust-watcher
+    volumes:
+      - .:/workspace
+      - dev_cargo_cache:/usr/local/cargo/registry
+      - dev_target_cache:/workspace/target
+    working_dir: /workspace
+    command: ["cargo", "watch", "-x", "check"]
+    profiles:
+      - development
+    networks:
+      - mod-net
+
+  # Python test runner
+  python-tests:
+    build:
+      context: .
+      target: development
+    container_name: mod-net-python-tests
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    environment:
+      - PYTHONPATH=/workspace
+    command: ["python", "-m", "pytest", "tests/", "-v", "--tb=short"]
+    profiles:
+      - testing
+    networks:
+      - mod-net
+
+volumes:
+  dev_cargo_cache:
+  dev_target_cache:

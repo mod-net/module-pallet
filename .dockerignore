@@ -1,0 +1,72 @@
+# Git and version control
+.gitignore
+.gitkeep
+
+# Build artifacts
+target/
+build/
+dist/
+*.egg-info/
+
+# Python cache and environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+.env
+
+# Rust cache
+Cargo.lock
+.cargo/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation and notes
+docs/
+*.md
+README*
+CHANGELOG*
+LICENSE*
+
+# CI/CD files
+.github/
+.pre-commit-config.yaml
+
+# Test files and coverage
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# Node modules (if any)
+node_modules/
+
+# Development tools
+.flake8
+.windsurfrules
+
+# Scripts that aren't needed in container
+scripts/
+run_*.sh
+
+# Environment files (use .env.example instead)
+.env.*
+!.env.example

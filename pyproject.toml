@@ -19,6 +19,7 @@ dependencies = [
     "pre-commit>=4.2.0",
     "ruff>=0.12.7",
     "mypy>=1.17.0",
+    "commune-ipfs>=0.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -163,3 +164,6 @@ exclude = [
 members = [
     "modules/test_module",
 ]
+
+[tool.uv.sources]
+commune-ipfs = { git = "https://github.com/mod-net/ipfs-service.git" }
