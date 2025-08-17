@@ -141,7 +141,7 @@ run_python_ruff() {
 }
 
 # Fix functions
-fix_rust_fmt() {
+run_rust_fmt_fix() {
     if command_exists cargo; then
         run_command "cd '$PROJECT_ROOT' && cargo fmt --all" "Rust formatting fix (cargo fmt)"
     else
@@ -150,7 +150,7 @@ fix_rust_fmt() {
     fi
 }
 
-fix_python_black() {
+run_python_black_fix() {
     if command_exists black; then
         run_command "cd '$PROJECT_ROOT' && black ." "Python formatting fix (black)"
     elif command_exists uv; then
@@ -161,7 +161,7 @@ fix_python_black() {
     fi
 }
 
-fix_python_isort() {
+run_python_isort_fix() {
     if command_exists isort; then
         run_command "cd '$PROJECT_ROOT' && isort . --profile black" "Python import sorting fix (isort)"
     elif command_exists uv; then
@@ -172,7 +172,7 @@ fix_python_isort() {
     fi
 }
 
-fix_python_ruff() {
+run_python_ruff_fix() {
     if command_exists ruff; then
         run_command "cd '$PROJECT_ROOT' && ruff check --fix ." "Python linting fix (ruff --fix)"
     elif command_exists uv; then
@@ -183,13 +183,13 @@ fix_python_ruff() {
     fi
 }
 
-fix_all_formatters() {
+run_all_formatters_fix() {
     print_header "Running All Formatter Fixes"
     local failed=0
 
-    fix_rust_fmt || failed=1
-    fix_python_black || failed=1
-    fix_python_isort || failed=1
+    run_rust_fmt_fix || failed=1
+    run_python_black_fix || failed=1
+    run_python_isort_fix || failed=1
 
     if [ $failed -eq 0 ]; then
         print_success "All formatter fixes completed successfully"
@@ -199,13 +199,13 @@ fix_all_formatters() {
     fi
 }
 
-fix_all_python_issues() {
+run_all_python_fixes() {
     print_header "Running All Python Fixes"
     local failed=0
 
-    fix_python_black || failed=1
-    fix_python_isort || failed=1
-    fix_python_ruff || failed=1
+    run_python_black_fix || failed=1
+    run_python_isort_fix || failed=1
+    run_python_ruff_fix || failed=1
 
     if [ $failed -eq 0 ]; then
         print_success "All Python fixes completed successfully"
@@ -217,9 +217,9 @@ fix_all_python_issues() {
 
 run_python_mypy() {
     if command_exists mypy; then
-        run_command "cd '$PROJECT_ROOT' && mypy mod_net_client" "Python type checking (mypy)"
+        run_command "cd '$PROJECT_ROOT' && mypy ." "Python type checking (mypy)"
     elif command_exists uv; then
-        run_command "cd '$PROJECT_ROOT' && uv run mypy mod_net_client" "Python type checking (mypy via uv)"
+        run_command "cd '$PROJECT_ROOT' && uv run mypy ." "Python type checking (mypy via uv)"
     else
         print_error "mypy not found. Please install mypy or uv."
         return 1
@@ -280,6 +280,7 @@ run_all_formatters() {
     run_rust_fmt || ((failed++))
     run_python_black || ((failed++))
     run_python_isort || ((failed++))
+    run_python_ruff_fix || ((failed++))
 
     if [ $failed -eq 0 ]; then
         print_success "All formatters completed successfully"
@@ -422,12 +423,12 @@ interactive_mode() {
             15) run_all_tests ;;
             16) run_all_checks ;;
             17) run_everything ;;
-            18) fix_rust_fmt ;;
-            19) fix_python_black ;;
-            20) fix_python_isort ;;
-            21) fix_python_ruff ;;
-            22) fix_all_formatters ;;
-            23) fix_all_python_issues ;;
+            18) run_rust_fmt_fix ;;
+            19) run_python_black_fix ;;
+            20) run_python_isort_fix ;;
+            21) run_python_ruff_fix ;;
+            22) run_all_formatters_fix ;;
+            23) run_all_python_issues_fix ;;
             0)
                 print_info "Goodbye!"
                 exit 0

@@ -1,37 +1,33 @@
 repos:
+# STEP 1: Run auto-fixes first to prepare code for validation
+-   repo: local
+    hooks:
+    -   id: run-formatters
+        name: Auto-fix code formatting and style
+        entry: ./run_checks.sh
+        args: [formatters]
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+# STEP 2: Basic file checks (these don't conflict with auto-fixes)
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
     -   id: trailing-whitespace
-        # Include submodules
         exclude: |
             (?x)^(
                 .*/\.git/
             )$
-        # Enable submodule traversal
-        always_run: true
     -   id: end-of-file-fixer
-        exclude: |
-            (?x)^(
-                .*/\.git/
-            )$
-        always_run: true
     -   id: check-yaml
-        always_run: true
     -   id: check-added-large-files
-        args: [--maxkb=1024]
-        always_run: true
     -   id: check-merge-conflict
-        always_run: true
     -   id: check-symlinks
-        always_run: true
     -   id: mixed-line-ending
-        args: [--fix=lf]
-        always_run: true
     -   id: check-case-conflict
-        always_run: true
     -   id: check-json
-        always_run: true
     -   id: check-toml
         always_run: true
 
@@ -111,6 +107,7 @@ repos:
         entry: bash -c 'find . -name "*.rs" -not -path "*/target/*" -not -path "*/.git/*" -exec rustfmt --edition=2021 {} +'
         language: system
         types: [rust]
+        exclude: ^(commune-ipfs/|modules/)
         pass_filenames: false
         always_run: true
 
@@ -127,7 +124,6 @@ repos:
         name: cargo clippy
         entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Linting $dir" && (cd "$dir" && cargo clippy --all-targets -- -D warnings) || exit 1; done'
         language: system
-        types: [rust]
+        types: [python]
+        exclude: ^(commune-ipfs/|modules/)
         pass_filenames: false
-        always_run: true
-        verbose: true

@@ -17,25 +17,11 @@ import time
 from datetime import datetime
 from typing import Any
 
+import commune as c
+
 from scripts.config import get_config
 
-# Import commune if available, otherwise create a minimal mock
-try:
-    import commune as c
-
-    HAS_COMMUNE = True
-except ImportError:
-    HAS_COMMUNE = False
-
-    # Create minimal mock for standalone operation
-    class MockMod:
-        def print(self, *args, **kwargs):
-            print(*args)
-
-        def time(self):
-            return time.time()
-
-    c = MockMod()
+HAS_COMMUNE = True
 
 
 class TestModule:
