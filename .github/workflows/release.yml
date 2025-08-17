@@ -53,8 +53,8 @@ jobs:
           rustup target add wasm32-unknown-unknown
           rustup component add rust-src
 
-      - name: Build the template
-        run: cargo build --locked --release
+      - name: Build the node
+        run: cargo build --package mod-net-node --locked --release
         timeout-minutes: 90
 
       - name: Upload the binaries
