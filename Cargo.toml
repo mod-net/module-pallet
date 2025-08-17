@@ -77,10 +77,6 @@ sp-transaction-pool = { version = "37.0.0", default-features = false }
 sp-version = { version = "40.0.0", default-features = false }
 substrate-wasm-builder = { version = "27.0.0", default-features = false }
 
-[patch.crates-io]
-# Fix for sc-network kad module import issue
-# Use master branch which should have the kad imports fixed
-sc-network = { git = "https://github.com/paritytech/polkadot-sdk", branch = "master" }
 
 [profile.release]
 opt-level = 3

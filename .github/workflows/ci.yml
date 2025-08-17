@@ -22,28 +22,12 @@ jobs:
 
       - if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/free-disk-space
-      - if: contains(matrix.os, 'ubuntu')
-        uses: ./.github/actions/ubuntu-dependencies
-      - if: contains(matrix.os, 'macos')
-        uses: ./.github/actions/macos-dependencies
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
 
-      - name: Build the node
-        run: cargo build --package mod-net-node
-        timeout-minutes: 90
-
-      - name: Run clippy
-        run: |
-          SKIP_WASM_BUILD=1 cargo clippy --all-targets --locked --workspace --quiet
-          SKIP_WASM_BUILD=1 cargo clippy --all-targets --all-features --locked --workspace --quiet
-        timeout-minutes: 30
-
-      - name: Run the tests
-        run: SKIP_WASM_BUILD=1 cargo test
-        timeout-minutes: 15
-
-      - name: Build the docs
-        run: SKIP_WASM_BUILD=1 cargo doc --workspace --no-deps
-        timeout-minutes: 15
+      - name: Run consolidated CI via Nix apps
+        run: nix run ./env-setup#ci
+        timeout-minutes: 120
 
   run-node:
     runs-on: ${{ matrix.os }}
