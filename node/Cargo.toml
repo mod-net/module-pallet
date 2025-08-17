@@ -1,5 +1,5 @@
 [package]
-name = "modnet-node"
+name = "mod-net-node"
 description = "A Mod-Net node template built with Substrate, part of Polkadot Sdk."
 version = "0.1.0"
 license = "Unlicense"

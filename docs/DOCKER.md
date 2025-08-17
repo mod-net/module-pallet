@@ -90,7 +90,7 @@ The Dockerfile provides multiple build targets:
 ### `blockchain-node` (Production)
 Optimized runtime image containing only the compiled blockchain node.
 
-### `python-client` (Production)  
+### `python-client` (Production)
 Minimal Python runtime with the mod-net client library and dependencies.
 
 ### `development` (Development)
@@ -265,7 +265,7 @@ docker-compose up -d --scale mod-net-client=3
 # Backup blockchain data
 docker run --rm -v modules_blockchain_data:/data -v $(pwd):/backup alpine tar czf /backup/blockchain-backup.tar.gz /data
 
-# Backup IPFS data  
+# Backup IPFS data
 docker run --rm -v modules_ipfs_data:/data -v $(pwd):/backup alpine tar czf /backup/ipfs-backup.tar.gz /data
 ```
 

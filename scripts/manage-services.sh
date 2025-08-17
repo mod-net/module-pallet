@@ -109,7 +109,7 @@ fi
 
 # Service definitions
 declare -A SERVICES=(
-    ["chain"]="cd $PROJECT_ROOT && ./target/release/modnet-node --dev --rpc-external --rpc-cors all"
+    ["chain"]="cd $PROJECT_ROOT && ./target/release/mod-net-node --dev --rpc-external --rpc-cors all"
     ["ipfs"]="ipfs daemon"
     ["ipfs-worker"]="cd $PROJECT_ROOT && COMMUNE_IPFS_HOST=0.0.0.0 COMMUNE_IPFS_PORT=8003 uv run commune-ipfs"
     ["blockchain-explorer"]="cd $PROJECT_ROOT/webui && python3 -m http.server 8081"
@@ -145,7 +145,7 @@ start_service() {
     case $service_name in
         "chain")
             # Check if blockchain binary exists
-            if [[ ! -f "$PROJECT_ROOT/target/release/modnet-node" ]]; then
+            if [[ ! -f "$PROJECT_ROOT/target/release/mod-net-node" ]]; then
                 print_status $RED "❌ Blockchain binary not found. Please build the project first:"
                 print_status $RED "   cd $PROJECT_ROOT && cargo build --release"
                 return 1

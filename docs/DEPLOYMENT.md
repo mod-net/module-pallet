@@ -110,8 +110,8 @@ graph TD
    After=network.target
 
    [Service]
-   User=modnet
-   Group=modnet
+   User=mod-net
+   Group=mod-net
    ExecStart=/usr/local/bin/node-template \
      --chain=production \
      --base-path /data \
@@ -224,7 +224,7 @@ groups:
    ./target/release/node-template export-blocks --chain=production > chain-$(date +%s).json
 
    # Backup database
-   cp -r /data/chains/modnet/db/ /backup/chain-db-$(date +%Y%m%d)
+   cp -r /data/chains/mod-net/db/ /backup/chain-db-$(date +%Y%m%d)
    ```
 
 2. **IPFS Data**:
@@ -327,5 +327,5 @@ ufw default allow outgoing
 
 For production support, contact:
 - Email: support@mod-net.io
-- Discord: [Join our server](https://discord.gg/modnet)
+- Discord: [Join our server](https://discord.gg/mod-net)
 - Documentation: [docs.mod-net.io](https://docs.mod-net.io)
