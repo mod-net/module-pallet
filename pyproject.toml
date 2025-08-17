@@ -8,7 +8,7 @@ authors = [
 ]
 dependencies = [
     "substrate-interface>=1.7.0",
-    "commune-ipfs @ git+https://github.com/Bakobiibizo/commune-ipfs.git",
+    "commune-ipfs @ git+https://github.com/mod-net/ipfs-service.git",
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
     "pydantic>=2.4.0",
@@ -51,7 +51,7 @@ dev = [
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-include = '(test_hooks\.py)$'
+include = '\\.pyi?$'
 exclude = '''
 (
   /(
@@ -68,7 +68,7 @@ exclude = '''
     | target
     | commune-ipfs
     | scripts
-    | modules
+    | modules/(?!test_module(/|$)).*
   )/
 )
 '''
@@ -88,8 +88,7 @@ skip_glob = [
     "**/site-packages/*",
     "**/.venv/*",
     "**/venv/*",
-    "scripts/*",
-    "modules/*"
+    "scripts/*"
 ]
 skip_gitignore = true
 
@@ -106,7 +105,11 @@ exclude = [
     ".git",
     "__pycache__",
     "scripts",
-    "modules",
+]
+# Additional exclusions to ignore third-party modules except test_module
+extend-exclude = [
+    "modules/(?!test_module(/|$)).*",
+    "commune-ipfs",
 ]
 
 [tool.ruff.lint]
@@ -164,10 +167,13 @@ exclude = [
     "__pycache__",
     "commune-ipfs",
     "scripts",
-    "modules",
     "modules/text2video/",
     "modules/text2speech/",
     "modules/text_gen/examples/",
+]
+# Ignore all other modules/* except modules/test_module for type-checking
+extend-exclude = [
+    "modules/(?!test_module(/|$)).*",
 ]
 
 [tool.uv.workspace]

@@ -12,9 +12,9 @@ services:
     environment:
       - RUST_LOG=debug
     command: [
-      "cargo", "run", "--bin", "modnet-node", "--",
+      "cargo", "run", "--bin", "mod-net-node", "--",
       "--dev",
-      "--ws-external", 
+      "--ws-external",
       "--rpc-external",
       "--rpc-cors=all",
       "--prometheus-external",

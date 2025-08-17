@@ -4,19 +4,19 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - '**.py'
+      - 'mod_net_client/**'
+      - 'modules/test_module/**'
       - 'pyproject.toml'
       - 'requirements.txt'
       - '.github/workflows/python.yml'
-      - '!modules/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - '**.py'
+      - 'mod_net_client/**'
+      - 'modules/test_module/**'
       - 'pyproject.toml'
       - 'requirements.txt'
       - '.github/workflows/python.yml'
-      - '!modules/**'
 
 jobs:
   lint:
@@ -38,16 +38,16 @@ jobs:
         run: uv sync --dev
 
       - name: Run Black
-        run: uv run black . --check
+        run: uv run black mod_net_client modules/test_module --check
 
       - name: Run isort
-        run: uv run isort . --check-only --profile black
+        run: uv run isort mod_net_client modules/test_module --check-only --profile black
 
       - name: Run Ruff
-        run: uv run ruff check .
+        run: uv run ruff check mod_net_client modules/test_module tests
 
       - name: Run MyPy
-        run: uv run mypy . --ignore-missing-imports
+        run: uv run mypy mod_net_client modules/test_module --ignore-missing-imports
 
   test:
     name: Test

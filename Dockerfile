@@ -54,17 +54,17 @@ RUN uv venv /opt/venv && \
 # Final runtime image for blockchain node
 FROM docker.io/parity/base-bin:latest AS blockchain-node
 
-COPY --from=rust-builder /mod-net/target/release/modnet-node /usr/local/bin/mod-net-node
+COPY --from=rust-builder /mod-net/target/release/mod-net-node /usr/local/bin/mod-net-node
 
 USER root
-RUN useradd -m -u 1001 -U -s /bin/sh -d /mod-net modnet && \
+RUN useradd -m -u 1001 -U -s /bin/sh -d /mod-net mod-net && \
     mkdir -p /data /mod-net/.local/share && \
-    chown -R modnet:modnet /data && \
+    chown -R mod-net:mod-net /data && \
     ln -s /data /mod-net/.local/share/mod-net && \
     # Verify executable works
     /usr/local/bin/mod-net-node --version
 
-USER modnet
+USER mod-net
 
 EXPOSE 30333 9933 9944 9615
 VOLUME ["/data"]
@@ -86,17 +86,14 @@ RUN apt-get update && apt-get install -y \
 COPY --from=python-builder /opt/venv /opt/venv
 COPY --from=python-builder /app /app
 
-# Create missing modules.py file to fix import error
-RUN echo 'from fastapi import APIRouter\n\nrouter = APIRouter(prefix="/modules", tags=["modules"])\n\n@router.get("/")\nasync def list_modules():\n    return {"modules": []}\n\n@router.get("/health")\nasync def modules_health():\n    return {"status": "healthy", "modules": []}' > /opt/venv/lib/python3.11/site-packages/app/api/modules.py
-
 # Activate virtual environment
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Create non-root user and necessary directories
-RUN useradd -m -u 1001 modnet-client && \
+RUN useradd -m -u 1001 mod-net-client && \
     mkdir -p /app/logs /app/.venv && \
-    chown -R modnet-client:modnet-client /app
-USER modnet-client
+    chown -R mod-net-client:mod-net-client /app
+USER mod-net-client
 
 EXPOSE 8001 8003 8081
 

@@ -1,7 +1,30 @@
 
 services:
-  # NOTE: Blockchain node disabled due to sc-network dependency conflicts
-  # Use local build: cargo run --bin modnet-node -- --dev --ws-external --rpc-external --rpc-cors=all
+  # Mod-Net blockchain node
+  mod-net-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: blockchain-node
+    container_name: mod-net-node
+    ports:
+      - "${EXTERNAL_P2P_PORT:-2101}:30333"
+      - "${EXTERNAL_RPC_PORT:-2102}:9933"
+      - "${EXTERNAL_WS_PORT:-2103}:9944"
+      - "${EXTERNAL_PROM_PORT:-2104}:9615"
+    volumes:
+      - blockchain_data:/data
+    command: [
+      "--dev",
+      "--ws-external",
+      "--rpc-external",
+      "--rpc-cors=all",
+      "--prometheus-external",
+      "--base-path=/data"
+    ]
+    restart: "no"
+    networks:
+      - mod-net
 
   # IPFS Worker Service
   ipfs-worker:
@@ -23,9 +46,10 @@ services:
       - SECRET_KEY=${SECRET_KEY:-dev-secret}
       - NODE_ENV=${NODE_ENV:-development}
       - DEBUG=${DEBUG:-false}
-    command: ["python", "-m", "app"]
+    command: ["uv", "run", "commune-ipfs"]
     depends_on:
       - ipfs
+      - mod-net-node
     restart: "no"
     networks:
       - mod-net
@@ -67,8 +91,8 @@ services:
       - ./webui:/app/webui:ro
     working_dir: /app/webui
     command: ["python3", "-m", "http.server", "8081"]
-    # depends_on:
-      # - mod-net-node  # Disabled - use local blockchain node
+    depends_on:
+      - mod-net-node
     restart: "no"
     networks:
       - mod-net

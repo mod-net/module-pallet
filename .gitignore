@@ -1,6 +1,3 @@
-modules/
-!modules/test_module
-
 */test_env/
 .ruff_cache
 
@@ -225,6 +222,4 @@ docs/INFRASTRUCTURE_UPDATE.md
 # Environment configuration (contains sensitive data)
 .env
 
-# Modules
-modules/*
-!modules/test_module
+# Modules (handled in parent repo; do not ignore here)

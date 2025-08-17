@@ -79,6 +79,11 @@ jobs:
 
       - uses: ./.github/actions/free-disk-space
 
-      - name: Build the Dockerfile
-        run: docker build . -t mod-net-node
+      - name: Build blockchain node Docker image (blockchain-node stage)
+        run: |
+          docker build --target blockchain-node -t mod-net-node:ci .
+
+      - name: Smoke test node image
+        run: |
+          docker run --rm mod-net-node:ci --version
         timeout-minutes: 90
