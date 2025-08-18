@@ -49,7 +49,7 @@ sp-transaction-pool.workspace = true
 sp-version = { features = ["serde"], workspace = true }
 
 [build-dependencies]
-substrate-wasm-builder = { optional = true, workspace = true, default-features = true }
+substrate-wasm-builder = { workspace = true, default-features = true }
 
 [features]
 default = ["std"]
@@ -88,7 +88,6 @@ std = [
 	"sp-storage/std",
 	"sp-transaction-pool/std",
 	"sp-version/std",
-	"substrate-wasm-builder",
 ]
 
 runtime-benchmarks = [

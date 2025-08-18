@@ -14,7 +14,6 @@ services:
     command: [
       "cargo", "run", "--bin", "mod-net-node", "--",
       "--dev",
-      "--ws-external",
       "--rpc-external",
       "--rpc-cors=all",
       "--prometheus-external",

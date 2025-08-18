@@ -22,6 +22,8 @@ COPY pallets/ ./pallets/
 COPY runtime/ ./runtime/
 
 # Install WASM target and build
+# Avoid git-based rebuild checks inside containers (no .git in context)
+ENV MODNET_SKIP_GIT=1
 RUN rustup target add wasm32-unknown-unknown && \
     cargo build --release
 

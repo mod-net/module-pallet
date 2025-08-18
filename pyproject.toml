@@ -105,14 +105,10 @@ exclude = [
     ".git",
     "__pycache__",
     "scripts",
-]
-# Additional exclusions to ignore third-party modules except test_module
-extend-exclude = [
+    # Ignore all other modules/* except modules/test_module
     "modules/(?!test_module(/|$)).*",
     "commune-ipfs",
 ]
-
-[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -170,9 +166,7 @@ exclude = [
     "modules/text2video/",
     "modules/text2speech/",
     "modules/text_gen/examples/",
-]
-# Ignore all other modules/* except modules/test_module for type-checking
-extend-exclude = [
+    # Ignore all other modules/* except modules/test_module
     "modules/(?!test_module(/|$)).*",
 ]
 

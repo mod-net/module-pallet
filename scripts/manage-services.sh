@@ -25,13 +25,36 @@ print_status() {
     echo -e "${color}${message}${NC}"
 }
 
+# Nix integration helpers
+has_nix() {
+    command -v nix >/dev/null 2>&1
+}
+
+in_nix_shell() {
+    [[ -n "${IN_NIX_SHELL:-}" ]]
+}
+
+run_in_nix() {
+    # Run a command inside the project's Nix dev shell if available
+    # Usage: run_in_nix <cmd ...>
+    if has_nix && ! in_nix_shell; then
+        NIX_CONFIG="experimental-features = nix-command flakes" nix develop "$PROJECT_ROOT/env-setup" -c "$@"
+    else
+        "$@"
+    fi
+}
+
 # Check for required dependencies
 check_dependencies() {
     # Ensure uv is available (required for Python package execution)
     if ! command -v uv >/dev/null 2>&1; then
-        print_status $RED "❌ uv is not installed. Install UV first:"
-        print_status $BLUE "   curl -LsSf https://astral.sh/uv/install.sh | sh"
-        exit 1
+        if has_nix; then
+            print_status $YELLOW "⚠️  uv not found, but Nix is available. Commands will run inside Nix dev shell."
+        else
+            print_status $RED "❌ uv is not installed. Install UV first:"
+            print_status $BLUE "   curl -LsSf https://astral.sh/uv/install.sh | sh"
+            exit 1
+        fi
     fi
 
     if ! command -v jq >/dev/null 2>&1; then
@@ -109,10 +132,10 @@ fi
 
 # Service definitions
 declare -A SERVICES=(
-    ["chain"]="cd $PROJECT_ROOT && ./target/release/mod-net-node --dev --rpc-external --rpc-cors all"
-    ["ipfs"]="ipfs daemon"
-    ["ipfs-worker"]="cd $PROJECT_ROOT && COMMUNE_IPFS_HOST=0.0.0.0 COMMUNE_IPFS_PORT=8003 uv run commune-ipfs"
-    ["blockchain-explorer"]="cd $PROJECT_ROOT/webui && python3 -m http.server 8081"
+    ["chain"]="bash $PROJECT_ROOT/scripts/pm2/run-chain.sh"
+    ["ipfs"]="bash $PROJECT_ROOT/scripts/pm2/run-ipfs.sh"
+    ["ipfs-worker"]="bash $PROJECT_ROOT/scripts/pm2/run-ipfs-worker.sh"
+    ["blockchain-explorer"]="bash $PROJECT_ROOT/scripts/pm2/run-explorer.sh"
     ["ngrok"]="ngrok start --all --config /home/com/.config/ngrok/ngrok.yml"
 )
 
@@ -146,43 +169,24 @@ start_service() {
         "chain")
             # Check if blockchain binary exists
             if [[ ! -f "$PROJECT_ROOT/target/release/mod-net-node" ]]; then
-                print_status $RED "❌ Blockchain binary not found. Please build the project first:"
-                print_status $RED "   cd $PROJECT_ROOT && cargo build --release"
-                return 1
+                print_status $YELLOW "🔧 Blockchain binary not found. Attempting to build (release) via Nix dev shell if available..."
+                if run_in_nix bash -c "cd '$PROJECT_ROOT' && cargo build --release"; then
+                    print_status $GREEN "✅ Build completed. Proceeding to start node."
+                else
+                    print_status $RED "❌ Build failed or Nix unavailable. Please build manually:"
+                    print_status $BLUE "   cd $PROJECT_ROOT && cargo build --release"
+                    return 1
+                fi
             fi
             ;;
         "ipfs")
-            # Check if IPFS is initialized
-            if ! ipfs id >/dev/null 2>&1; then
-                print_status $YELLOW "🔧 Initializing IPFS..."
-                ipfs init
-                # Configure IPFS for external access
-                ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
-                ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
-                ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-                ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "POST"]'
-            fi
+            # Always delegate to the wrapper to handle Nix env, local repo, graceful shutdown, and repo.lock waits
+            command="bash $PROJECT_ROOT/scripts/pm2/run-ipfs.sh"
             ;;
         "ipfs-worker")
-            # Preflight: prefer console script; if missing, sync env and retry
-            if ! uv run commune-ipfs --help >/dev/null 2>&1; then
-                print_status $YELLOW "🔧 commune-ipfs entrypoint not detected. Syncing Python environment..."
-                (
-                    cd "$PROJECT_ROOT" && uv sync
-                )
-            fi
-
-            # Start from SCRIPT_DIR to avoid loading project-level .env in commune-ipfs Settings
-            # but still pass through needed settings from the project's .env
+            # Export selected envs then delegate to the wrapper which handles Nix env and app selection
             export_ipfs_env_from_project_env
-            if uv run commune-ipfs --help >/dev/null 2>&1; then
-                command="cd $SCRIPT_DIR && COMMUNE_IPFS_HOST=0.0.0.0 COMMUNE_IPFS_PORT=8003 uv run commune-ipfs"
-            elif uv run uvicorn --help >/dev/null 2>&1; then
-                command="cd $SCRIPT_DIR && COMMUNE_IPFS_HOST=0.0.0.0 COMMUNE_IPFS_PORT=8003 uv run uvicorn app.main:app --host 0.0.0.0 --port 8003"
-            else
-                print_status $RED "❌ commune-ipfs cannot start: missing console script and uvicorn"
-                return 1
-            fi
+            command="bash $PROJECT_ROOT/scripts/pm2/run-ipfs-worker.sh"
             ;;
         "ngrok")
             # Check if ngrok config exists
@@ -192,10 +196,26 @@ start_service() {
             fi
             command="ngrok start --all"
             ;;
+        "blockchain-explorer")
+            # Serve the web UI via python http.server, preferring Nix if available
+            if has_nix && ! in_nix_shell; then
+                command="cd $PROJECT_ROOT/webui && bash -lc \"env NIX_CONFIG='experimental-features = nix-command flakes' nix develop '$PROJECT_ROOT/env-setup' -c python3 -m http.server 8081\""
+            else
+                command="cd $PROJECT_ROOT/webui && python3 -m http.server 8081"
+            fi
+            ;;
     esac
 
     # Start the service
-    if pm2 start "$command" --name "$service_name" >/dev/null 2>&1; then
+    # If command is a wrapper invocation like: bash /path/to/run-*.sh, ask PM2 to run the script directly
+    if [[ "$command" =~ ^bash[[:space:]]+(.+\.sh)[[:space:]]*$ ]]; then
+        script_path="${BASH_REMATCH[1]}"
+        start_cmd=(pm2 start "$script_path" --name "$service_name" --interpreter bash)
+    else
+        start_cmd=(pm2 start "$command" --name "$service_name")
+    fi
+
+    if "${start_cmd[@]}" >/dev/null 2>&1; then
         print_status $GREEN "✅ Service '$service_name' started successfully"
 
         # Wait a moment for service to initialize

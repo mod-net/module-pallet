@@ -8,15 +8,14 @@ services:
       target: blockchain-node
     container_name: mod-net-node
     ports:
-      - "${EXTERNAL_P2P_PORT:-2101}:30333"
-      - "${EXTERNAL_RPC_PORT:-2102}:9933"
-      - "${EXTERNAL_WS_PORT:-2103}:9944"
-      - "${EXTERNAL_PROM_PORT:-2104}:9615"
+      - "${EXTERNAL_CHAIN_P2P_PORT:-2101}:30333"
+      - "${EXTERNAL_CHAIN_RPC_PORT:-2102}:9933"
+      - "${EXTERNAL_CHAIN_WS_PORT:-2103}:9933"  # WS shares the RPC port
+      - "${EXTERNAL_PROMETHEUS_PORT:-2104}:9615"
     volumes:
       - blockchain_data:/data
     command: [
       "--dev",
-      "--ws-external",
       "--rpc-external",
       "--rpc-cors=all",
       "--prometheus-external",
@@ -67,6 +66,11 @@ services:
       - ipfs_staging:/export
     environment:
       - IPFS_PROFILE=server
+    sysctls:
+      net.core.rmem_max: 2500000
+      net.core.rmem_default: 2500000
+      net.core.wmem_max: 2500000
+      net.core.wmem_default: 2500000
     entrypoint: ["/bin/sh", "-c"]
     command: |
       ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[\"*\"]' &&

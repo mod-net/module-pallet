@@ -1,9 +1,10 @@
 [workspace.package]
 license = "MIT-0"
-authors = ["Parity Technologies <admin@parity.io>"]
-homepage = "https://paritytech.github.io/polkadot-sdk/"
-repository = "https://github.com/mod-net/modules.git"
+authors = ["Mod-Net Team <https://github.com/mod-net>"]
+homepage = "https://commune.org"
+repository = "https://github.com/mod-net/module-pallet.git"
 edition = "2021"
+publish = false
 
 [workspace]
 members = [
