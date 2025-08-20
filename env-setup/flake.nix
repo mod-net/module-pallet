@@ -201,8 +201,12 @@ PY
           ${lintApp}/bin/lint
           ${typecheckApp}/bin/typecheck
           ${testApp}/bin/test
-          ${dockerBuildApp}/bin/docker-build
-          ${dockerSmokeApp}/bin/docker-smoke
+          if command -v docker >/dev/null 2>&1; then
+            ${dockerBuildApp}/bin/docker-build
+            ${dockerSmokeApp}/bin/docker-smoke
+          else
+            echo "Docker not found; skipping Docker image build/smoke."
+          fi
         '';
       };
 
