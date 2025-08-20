@@ -1,17 +1,31 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.follows = "rust-overlay/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }: flake-utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, rust-overlay, ... }: flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = import nixpkgs { inherit system; };
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ rust-overlay.overlays.default ];
+      };
+      # Pin Rust toolchain so Nix builds use a Cargo new enough for lockfile v4
+      # Include WASM targets directly in the toolchain (Nix builds do not use rustup)
+      rustToolchain = (pkgs.rust-bin.stable."1.89.0".default.override {
+        targets = [ "wasm32-unknown-unknown" "wasm32v1-none" ];
+      });
+      rustPlatform = pkgs.makeRustPlatform {
+        rustc = rustToolchain;
+        cargo = rustToolchain;
+      };
       pythonTest = pkgs.python311.withPackages (ps: [ ps.pytest ps.pytest-cov ps.pytest-asyncio ps.pip ]);
 
       # Build the Rust node from the repository root (flake lives in env-setup/)
       nodeSrc = pkgs.lib.cleanSource ../.;
-      nodePkg = pkgs.rustPlatform.buildRustPackage {
+      nodePkg = rustPlatform.buildRustPackage {
         pname = "mod-net-node";
         version = "0.1.0";
         src = nodeSrc;
@@ -19,10 +33,14 @@
         cargoLock.lockFile = nodeSrc + "/Cargo.lock";
         # Build only the node crate within the workspace
         buildAndTestSubdir = "node";
-        nativeBuildInputs = [ pkgs.pkg-config pkgs.protobuf pkgs.makeWrapper ];
-        buildInputs = [ pkgs.openssl pkgs.udev pkgs.clang pkgs.llvm ];
+        nativeBuildInputs = [ pkgs.pkg-config pkgs.protobuf pkgs.makeWrapper pkgs.clang pkgs.llvmPackages.lld ];
+        buildInputs = [ pkgs.openssl pkgs.udev pkgs.llvm pkgs.libclang ];
+        # Use clang as the linker and lld as the link backend
+        CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER = "${pkgs.clang}/bin/clang";
         # Substrate builds can allocate a lot; ensure reproducible env
         RUSTFLAGS = "-C link-arg=-fuse-ld=lld";
+        # Ensure bindgen can locate libclang shared library
+        LIBCLANG_PATH = "${pkgs.libclang.lib}/lib";
         # Avoid git-based rebuild checks during Nix build
         MODNET_SKIP_GIT = "1";
         # Tests are heavy and unnecessary for package build here
@@ -87,6 +105,7 @@
           ruff check --config "$ROOT/pyproject.toml" "$ROOT/mod_net_client" "$ROOT/modules/test_module" "$ROOT/tests"
           rustup show >/dev/null 2>&1 || true
           rustup component add clippy >/dev/null 2>&1 || true
+          rustup target add wasm32v1-none >/dev/null 2>&1 || true
           rustup target add wasm32-unknown-unknown >/dev/null 2>&1 || true
           # Lint only first-party pallets to avoid compiling unrelated external crates
           SKIP_WASM_BUILD=1 cargo clippy --manifest-path "$ROOT/pallets/module-registry/Cargo.toml" --all-targets --no-deps --quiet
@@ -129,6 +148,7 @@
               exit 1;;
           esac
           rustup show >/dev/null 2>&1 || true
+          rustup target add wasm32v1-none >/dev/null 2>&1 || true
           rustup target add wasm32-unknown-unknown >/dev/null 2>&1 || true
           SKIP_WASM_BUILD=1 cargo test
           export PYTHONPATH="$ROOT:${PYTHONPATH:-}"

@@ -67,6 +67,7 @@
           ruff check --config "$ROOT/pyproject.toml" "$ROOT/mod_net_client" "$ROOT/modules/test_module" "$ROOT/tests"
           rustup show >/dev/null 2>&1 || true
           rustup component add clippy >/dev/null 2>&1 || true
+          rustup target add wasm32v1-none >/dev/null 2>&1 || true
           rustup target add wasm32-unknown-unknown >/dev/null 2>&1 || true
           SKIP_WASM_BUILD=1 cargo clippy --manifest-path "$ROOT/pallets/module-registry/Cargo.toml" --all-targets --no-deps --quiet
           SKIP_WASM_BUILD=1 cargo clippy --manifest-path "$ROOT/pallets/template/Cargo.toml" --all-targets --no-deps --quiet
@@ -93,6 +94,7 @@
           set -euo pipefail
           ROOT="''${REPO_ROOT:-$PWD}"
           rustup show >/dev/null 2>&1 || true
+          rustup target add wasm32v1-none >/dev/null 2>&1 || true
           rustup target add wasm32-unknown-unknown >/dev/null 2>&1 || true
           SKIP_WASM_BUILD=1 cargo test
           export PYTHONPATH="$ROOT:${PYTHONPATH:-}"
@@ -171,6 +173,9 @@
         PIP_DISABLE_PIP_VERSION_CHECK = 1;
         shellHook = ''
           if type bash >/dev/null 2>&1; then shopt -s expand_aliases || true; fi
+          if ! rustup target list --installed | grep -q wasm32v1-none; then
+            rustup target add wasm32v1-none >/dev/null
+          fi
           if ! rustup target list --installed | grep -q wasm32-unknown-unknown; then
             rustup target add wasm32-unknown-unknown >/dev/null
           fi

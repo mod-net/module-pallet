@@ -1,5 +1,5 @@
 # Multi-stage build for Mod-Net blockchain node
-FROM rust:1.75 AS rust-builder
+FROM rust:1.89-bookworm AS rust-builder
 
 WORKDIR /mod-net
 
@@ -24,7 +24,11 @@ COPY runtime/ ./runtime/
 # Install WASM target and build
 # Avoid git-based rebuild checks inside containers (no .git in context)
 ENV MODNET_SKIP_GIT=1
-RUN rustup target add wasm32-unknown-unknown && \
+RUN rustup show && \
+    rustup update && \
+    rustup target add wasm32v1-none && \
+    rustup target add wasm32-unknown-unknown && \
+    cargo clean && \
     cargo build --release
 
 # Python client builder stage
@@ -53,8 +57,15 @@ RUN uv venv /opt/venv && \
     . /opt/venv/bin/activate && \
     uv pip install -r requirements.txt
 
-# Final runtime image for blockchain node
-FROM docker.io/parity/base-bin:latest AS blockchain-node
+# Final runtime image for blockchain node (match builder's libc/ABI)
+FROM debian:bookworm-slim AS blockchain-node
+
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    libstdc++6 \
+    libgcc-s1 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=rust-builder /mod-net/target/release/mod-net-node /usr/local/bin/mod-net-node
 
@@ -102,7 +113,7 @@ EXPOSE 8001 8003 8081
 CMD ["python", "-m", "mod_net_client"]
 
 # Development image with both Rust and Python tools
-FROM rust:1.75 AS development
+FROM rust:1.89 AS development
 
 WORKDIR /workspace
 
@@ -116,8 +127,11 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Rust tools
-RUN rustup target add wasm32-unknown-unknown && \
+# Install Rust tools and both WASM targets (modern + legacy for compatibility)
+RUN rustup show && \
+    rustup update && \
+    rustup target add wasm32v1-none && \
+    rustup target add wasm32-unknown-unknown && \
     cargo install cargo-watch
 
 # Install Python tools

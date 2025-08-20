@@ -30,12 +30,12 @@ repos:
     -   id: check-toml
         always_run: true
 
--   repo: https://github.com/psf/black
-    rev: 23.12.1
+-   repo: local
     hooks:
     -   id: black
         name: black (python auto-fix)
-        args: [--line-length=88]
+        entry: bash -lc 'black --line-length=88'
+        language: system
         files: ^(mod_net_client/|modules/test_module/|tests/).*
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
@@ -45,13 +45,9 @@ repos:
         name: ruff (python auto-fix)
         args: [--fix]
         files: ^(mod_net_client/|modules/test_module/|tests/).*
-
--   repo: https://github.com/pycqa/isort
-    rev: 6.0.1
-    hooks:
-    -   id: isort
-        name: isort (python auto-fix)
-        args: [--profile=black]
+    -   id: ruff
+        name: ruff (import sort via isort rules)
+        args: [--fix, --select, I]
         files: ^(mod_net_client/|modules/test_module/|tests/).*
 
 # Rust tooling is handled through rustup and cargo directly
