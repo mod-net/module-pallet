@@ -72,6 +72,7 @@
         ];
         text = ''
           set -euo pipefail
+          export PROTOC="${pkgs.protobuf}/bin/protoc"
           ROOT="''${REPO_ROOT:-$PWD}"
           case "$ROOT" in
             /nix/store/*)
@@ -93,9 +94,10 @@
 
       lintApp = pkgs.writeShellApplication {
         name = "lint";
-        runtimeInputs = [ pkgs.ruff pkgs.rustup ];
+        runtimeInputs = [ pkgs.ruff pkgs.rustup pkgs.protobuf pkgs.pkg-config ];
         text = ''
           set -euo pipefail
+          export PROTOC="${pkgs.protobuf}/bin/protoc"
           ROOT="''${REPO_ROOT:-$PWD}"
           case "$ROOT" in
             /nix/store/*)
@@ -138,9 +140,10 @@
 
       testApp = pkgs.writeShellApplication {
         name = "test";
-        runtimeInputs = [ pkgs.rustup pythonTest ];
+        runtimeInputs = [ pkgs.rustup pythonTest pkgs.protobuf pkgs.pkg-config ];
         text = ''
           set -euo pipefail
+          export PROTOC="${pkgs.protobuf}/bin/protoc"
           ROOT="''${REPO_ROOT:-$PWD}"
           case "$ROOT" in
             /nix/store/*)
