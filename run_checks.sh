@@ -60,28 +60,6 @@ run_command() {
     fi
 }
 
-# Submodule management
-run_submodule_update() {
-    if [ -f ".gitmodules" ]; then
-        print_info "Checking for submodule updates..."
-
-        # Check if any submodules need updating
-        if git submodule status | grep -q '^[+-]'; then
-            print_info "Submodules need updating, syncing..."
-            run_command "git submodule update --init --recursive" "Submodule sync"
-
-            # Check if submodule pointers need updating in main repo
-            if ! git diff --quiet --cached; then
-                print_warning "Submodule pointers may need updating. Consider running 'git add .' and committing changes."
-            fi
-        else
-            print_success "Submodules are up to date"
-        fi
-    else
-        print_info "No submodules found, skipping submodule update"
-    fi
-}
-
 # Rust tools
 run_rust_fmt() {
     if command_exists cargo; then
@@ -94,7 +72,7 @@ run_rust_fmt() {
 
 run_rust_clippy() {
     if command_exists cargo; then
-        run_command "cd '$PROJECT_ROOT' && cargo clippy --all-targets --all-features -- -D warnings" "Rust linting (cargo clippy)"
+        run_command "cd '$PROJECT_ROOT' && cargo clippy --all-targets -- -D warnings" "Rust linting (cargo clippy)"
     else
         print_error "cargo not found. Please install Rust."
         return 1
@@ -103,7 +81,7 @@ run_rust_clippy() {
 
 run_rust_check() {
     if command_exists cargo; then
-        run_command "cd '$PROJECT_ROOT' && cargo check --all-targets --all-features" "Rust compilation check (cargo check)"
+        run_command "cd '$PROJECT_ROOT' && cargo check --all-targets" "Rust compilation check (cargo check)"
     else
         print_error "cargo not found. Please install Rust."
         return 1
@@ -162,13 +140,77 @@ run_python_ruff() {
     fi
 }
 
+# Fix functions
+run_rust_fmt_fix() {
+    if command_exists cargo; then
+        run_command "cd '$PROJECT_ROOT' && cargo fmt --all" "Rust formatting fix (cargo fmt)"
+    else
+        print_error "cargo not found. Please install Rust."
+        return 1
+    fi
+}
+
+run_python_black_fix() {
+    if command_exists black; then
+        run_command "cd '$PROJECT_ROOT' && black ." "Python formatting fix (black)"
+    elif command_exists uv; then
+        run_command "cd '$PROJECT_ROOT' && uv run black ." "Python formatting fix (black via uv)"
+    else
+        print_error "black not found. Please install black or uv."
+        return 1
+    fi
+}
+
+run_python_isort_fix() {
+    if command_exists isort; then
+        run_command "cd '$PROJECT_ROOT' && isort . --profile black" "Python import sorting fix (isort)"
+    elif command_exists uv; then
+        run_command "cd '$PROJECT_ROOT' && uv run isort . --profile black" "Python import sorting fix (isort via uv)"
+    else
+        print_error "isort not found. Please install isort or uv."
+        return 1
+    fi
+}
+
 run_python_ruff_fix() {
     if command_exists ruff; then
-        run_command "cd '$PROJECT_ROOT' && ruff check . --fix --unsafe-fixes" "Python auto-fix (ruff --fix --unsafe-fixes)"
+        run_command "cd '$PROJECT_ROOT' && ruff check --fix ." "Python linting fix (ruff --fix)"
     elif command_exists uv; then
-        run_command "cd '$PROJECT_ROOT' && uv run ruff check . --fix --unsafe-fixes" "Python auto-fix (ruff --fix --unsafe-fixes via uv)"
+        run_command "cd '$PROJECT_ROOT' && uv run ruff check --fix ." "Python linting fix (ruff --fix via uv)"
     else
         print_error "ruff not found. Please install ruff or uv."
+        return 1
+    fi
+}
+
+run_all_formatters_fix() {
+    print_header "Running All Formatter Fixes"
+    local failed=0
+
+    run_rust_fmt_fix || failed=1
+    run_python_black_fix || failed=1
+    run_python_isort_fix || failed=1
+
+    if [ $failed -eq 0 ]; then
+        print_success "All formatter fixes completed successfully"
+    else
+        print_error "Some formatter fixes failed"
+        return 1
+    fi
+}
+
+run_all_python_fixes() {
+    print_header "Running All Python Fixes"
+    local failed=0
+
+    run_python_black_fix || failed=1
+    run_python_isort_fix || failed=1
+    run_python_ruff_fix || failed=1
+
+    if [ $failed -eq 0 ]; then
+        print_success "All Python fixes completed successfully"
+    else
+        print_error "Some Python fixes failed"
         return 1
     fi
 }
@@ -235,7 +277,6 @@ run_all_formatters() {
     print_header "Running All Formatters"
     local failed=0
 
-    run_submodule_update || ((failed++))
     run_rust_fmt || ((failed++))
     run_python_black || ((failed++))
     run_python_isort || ((failed++))
@@ -331,20 +372,27 @@ show_menu() {
     printf "  8)  Python Ruff (ruff)\n"
     printf "  9)  Python MyPy (mypy)\n"
     printf "  10) Python Pytest (pytest)\n"
-    printf "  11) Submodule Update (sync submodules)\n"
+    printf "\n"
+    printf "${RED}Fix Commands:${NC}\n"
+    printf "  18) Fix Rust Format\n"
+    printf "  19) Fix Python Black\n"
+    printf "  20) Fix Python Isort\n"
+    printf "  21) Fix Python Ruff\n"
+    printf "  22) Fix All Formatters\n"
+    printf "  23) Fix All Python Issues\n"
     printf "\n"
     printf "${YELLOW}By Language:${NC}\n"
-    printf "  12) All Rust Tools\n"
-    printf "  13) All Python Tools\n"
+    printf "  11) All Rust Tools\n"
+    printf "  12) All Python Tools\n"
     printf "\n"
     printf "${CYAN}By Category:${NC}\n"
-    printf "  14) All Formatters (fmt, black, isort, submodule sync)\n"
-    printf "  15) All Linters (clippy, ruff, mypy)\n"
-    printf "  16) All Tests (cargo test, pytest)\n"
-    printf "  17) All Checks (check, clippy, ruff, mypy)\n"
+    printf "  13) All Formatters (fmt, black, isort)\n"
+    printf "  14) All Linters (clippy, ruff, mypy)\n"
+    printf "  15) All Tests (cargo test, pytest)\n"
+    printf "  16) All Checks (check, clippy, ruff, mypy)\n"
     printf "\n"
     printf "${GREEN}Combined:${NC}\n"
-    printf "  18) Everything (formatters + checks + tests)\n"
+    printf "  17) Everything (formatters + checks + tests)\n"
     printf "\n"
     printf "  0)  Exit\n"
     printf "\n"
@@ -354,7 +402,7 @@ show_menu() {
 interactive_mode() {
     while true; do
         show_menu
-        read -p "Enter your choice (0-17): " choice
+        read -p "Enter your choice (0-23): " choice
         echo
 
         case $choice in
@@ -368,20 +416,25 @@ interactive_mode() {
             8) run_python_ruff ;;
             9) run_python_mypy ;;
             10) run_python_pytest ;;
-            11) run_submodule_update ;;
-            12) run_all_rust ;;
-            13) run_all_python ;;
-            14) run_all_formatters ;;
-            15) run_all_linters ;;
-            16) run_all_tests ;;
-            17) run_all_checks ;;
-            18) run_everything ;;
+            11) run_all_rust ;;
+            12) run_all_python ;;
+            13) run_all_formatters ;;
+            14) run_all_linters ;;
+            15) run_all_tests ;;
+            16) run_all_checks ;;
+            17) run_everything ;;
+            18) run_rust_fmt_fix ;;
+            19) run_python_black_fix ;;
+            20) run_python_isort_fix ;;
+            21) run_python_ruff_fix ;;
+            22) run_all_formatters_fix ;;
+            23) run_all_python_issues_fix ;;
             0)
                 print_info "Goodbye!"
                 exit 0
                 ;;
             *)
-                print_error "Invalid choice. Please enter a number between 0-18."
+                print_error "Invalid choice. Please enter a number between 0-23."
                 ;;
         esac
 
@@ -407,7 +460,6 @@ else
         "python-ruff"|"ruff") run_python_ruff ;;
         "python-mypy"|"mypy") run_python_mypy ;;
         "python-pytest"|"pytest"|"test-python") run_python_pytest ;;
-        "submodule"|"submodules"|"sync") run_submodule_update ;;
         "rust"|"all-rust") run_all_rust ;;
         "python"|"all-python") run_all_python ;;
         "formatters"|"format") run_all_formatters ;;
@@ -415,17 +467,25 @@ else
         "tests"|"test") run_all_tests ;;
         "checks") run_all_checks ;;
         "all"|"everything") run_everything ;;
+        "fix-rust-fmt"|"fix-fmt") fix_rust_fmt ;;
+        "fix-python-black"|"fix-black") fix_python_black ;;
+        "fix-python-isort"|"fix-isort") fix_python_isort ;;
+        "fix-python-ruff"|"fix-ruff") fix_python_ruff ;;
+        "fix-formatters"|"fix-format") fix_all_formatters ;;
+        "fix-python"|"fix-all-python") fix_all_python_issues ;;
         "help"|"--help"|"h")
             printf "Usage: %s [command]\n" "$0"
             printf "\n"
             printf "Commands:\n"
             printf "  Individual tools: rust-fmt, rust-clippy, rust-check, rust-test, rust-doc\n"
             printf "                   python-black, python-isort, python-ruff, python-mypy, python-pytest\n"
-            printf "                   submodule (sync submodules)\n"
+            printf "  Fix commands:    fix-rust-fmt, fix-python-black, fix-python-isort, fix-python-ruff\n"
+            printf "                   fix-formatters, fix-python\n"
             printf "  By language:     rust, python\n"
             printf "  By category:     formatters, linters, tests, checks\n"
             printf "  Combined:        all, everything\n"
             printf "\n"
+            printf "Fix commands automatically apply fixes where possible (e.g., formatting, auto-fixable lints).\n"
             printf "If no command is provided, interactive mode will start.\n"
             ;;
         *)

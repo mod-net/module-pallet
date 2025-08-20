@@ -349,11 +349,12 @@
     </div>
 
     <script>
-        const RPC_URL = 'http://localhost:9944';
+        // RPC over HTTP; WS shares the same port (e.g., ws://localhost:9933)
+        const RPC_URL = 'http://localhost:9933';
         // External RPC URL - configure this based on your deployment
-        // For local development: 'http://localhost:9944'
+        // For local development: 'http://localhost:9933'
         // For external access: 'http://YOUR_EXTERNAL_IP:YOUR_EXTERNAL_PORT'
-        const EXTERNAL_RPC_URL = 'http://localhost:9944';
+        const EXTERNAL_RPC_URL = 'http://localhost:9933';
 
         let currentRpcUrl = RPC_URL;
         let requestId = 1;

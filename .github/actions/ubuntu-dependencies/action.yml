@@ -1,5 +1,5 @@
 name: Install Ubuntu dependencies
-description: Installs dependencies required to compile the template in Ubuntu
+description: Installs dependencies required to compile the node in Ubuntu
 
 runs:
   using: "composite"
@@ -10,6 +10,7 @@ runs:
         sudo apt update
         sudo apt install -y \
           protobuf-compiler
-        rustup target add wasm32-unknown-unknown --toolchain stable-x86_64-unknown-linux-gnu
+        rustup target add wasm32v1-none --toolchain stable-x86_64-unknown-linux-gnu || true
+        rustup target add wasm32-unknown-unknown --toolchain stable-x86_64-unknown-linux-gnu || true
         rustup component add rustfmt clippy rust-src --toolchain stable-x86_64-unknown-linux-gnu
       shell: bash

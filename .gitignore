@@ -222,6 +222,6 @@ docs/INFRASTRUCTURE_UPDATE.md
 # Environment configuration (contains sensitive data)
 .env
 
-# Modules
+# Modules (handled in parent repo; do not ignore here)
 modules/*
 !modules/test_module

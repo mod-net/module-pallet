@@ -4,19 +4,19 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - '**.py'
+      - 'mod_net_client/**'
+      - 'modules/test_module/**'
       - 'pyproject.toml'
       - 'requirements.txt'
       - '.github/workflows/python.yml'
-      - '!modules/**'
   pull_request:
     branches: [ "main" ]
     paths:
-      - '**.py'
+      - 'mod_net_client/**'
+      - 'modules/test_module/**'
       - 'pyproject.toml'
       - 'requirements.txt'
       - '.github/workflows/python.yml'
-      - '!modules/**'
 
 jobs:
   lint:
@@ -25,29 +25,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
 
-      - name: Install UV
-        run: pip install uv
+      - name: Run Black + isort (fmt)
+        run: nix run ./env-setup#fmt
 
-      - name: Install dependencies
-        run: uv sync --dev
+      - name: Run Ruff (lint)
+        run: nix run ./env-setup#lint
 
-      - name: Run Black
-        run: uv run black . --check
-
-      - name: Run isort
-        run: uv run isort . --check-only --profile black
-
-      - name: Run Ruff
-        run: uv run ruff check .
-
-      - name: Run MyPy
-        run: uv run mypy . --ignore-missing-imports
+      - name: Run MyPy (typecheck)
+        run: nix run ./env-setup#typecheck
 
   test:
     name: Test
@@ -55,22 +43,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          cache: 'pip'
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
 
-      - name: Install UV
-        run: pip install uv
-
-      - name: Install dependencies
-        run: uv sync --dev
-
-      - name: Run tests
-        run: |
-          # Run tests with increased verbosity and coverage
-          uv run python -m pytest tests/ -v --cov=mod_net_client --cov-report=xml
+      - name: Run tests (pytest)
+        run: nix run ./env-setup#test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

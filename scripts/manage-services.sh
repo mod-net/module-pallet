@@ -17,7 +17,6 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-COMMUNE_IPFS_DIR="$PROJECT_ROOT/commune-ipfs"
 
 # Function to print colored output (defined early for use in config loading)
 print_status() {
@@ -26,8 +25,38 @@ print_status() {
     echo -e "${color}${message}${NC}"
 }
 
+# Nix integration helpers
+has_nix() {
+    command -v nix >/dev/null 2>&1
+}
+
+in_nix_shell() {
+    [[ -n "${IN_NIX_SHELL:-}" ]]
+}
+
+run_in_nix() {
+    # Run a command inside the project's Nix dev shell if available
+    # Usage: run_in_nix <cmd ...>
+    if has_nix && ! in_nix_shell; then
+        NIX_CONFIG="experimental-features = nix-command flakes" nix develop "$PROJECT_ROOT/env-setup" -c "$@"
+    else
+        "$@"
+    fi
+}
+
 # Check for required dependencies
 check_dependencies() {
+    # Ensure uv is available (required for Python package execution)
+    if ! command -v uv >/dev/null 2>&1; then
+        if has_nix; then
+            print_status $YELLOW "⚠️  uv not found, but Nix is available. Commands will run inside Nix dev shell."
+        else
+            print_status $RED "❌ uv is not installed. Install UV first:"
+            print_status $BLUE "   curl -LsSf https://astral.sh/uv/install.sh | sh"
+            exit 1
+        fi
+    fi
+
     if ! command -v jq >/dev/null 2>&1; then
         print_status $YELLOW "⚠️  jq is not installed. For more reliable service status checks, install jq:"
         print_status $BLUE "   Ubuntu/Debian: sudo apt-get install jq"
@@ -36,6 +65,53 @@ check_dependencies() {
         print_status $YELLOW "   Falling back to grep-based service status checks."
         echo
     fi
+}
+
+# Export only commune-ipfs relevant env vars from project's .env
+export_ipfs_env_from_project_env() {
+    local env_file="$PROJECT_ROOT/.env"
+    [[ -f "$env_file" ]] || return 0
+
+    # Whitelisted keys to pass through to the ipfs worker
+    local whitelist=(
+        COMMUNE_IPFS_HOST
+        COMMUNE_IPFS_PORT
+        IPFS_API_URL
+        IPFS_GATEWAY_URL
+        IPFS_TIMEOUT
+        DATABASE_URL
+        DEBUG
+        SECRET_KEY
+        ALGORITHM
+        ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    # Read .env lines and export only whitelisted keys
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip comments and empty lines
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+        # Ensure line has assignment
+        [[ "$line" != *"="* ]] && continue
+
+        local key="${line%%=*}"
+        local value="${line#*=}"
+
+        # Trim whitespace from key
+        key="${key##*[[:space:]]}"
+        key="${key%%[[:space:]]*}"
+
+        # Strip surrounding quotes from value
+        value="${value%$'\r'}"
+        value="${value%\"}"
+        value="${value#\"}"
+
+        for wkey in "${whitelist[@]}"; do
+            if [[ "$key" == "$wkey" ]]; then
+                export "$key"="$value"
+                break
+            fi
+        done
+    done < "$env_file"
 }
 
 # Load environment variables if .env file exists
@@ -56,10 +132,10 @@ fi
 
 # Service definitions
 declare -A SERVICES=(
-    ["chain"]="cd $PROJECT_ROOT && ./target/release/solochain-template-node --dev --rpc-external --rpc-cors all"
-    ["ipfs"]="ipfs daemon"
-    ["ipfs-worker"]="cd $COMMUNE_IPFS_DIR && COMMUNE_IPFS_HOST=0.0.0.0 COMMUNE_IPFS_PORT=8003 uv run python main.py"
-    ["blockchain-explorer"]="cd $PROJECT_ROOT/webui && python3 -m http.server 8081"
+    ["chain"]="bash $PROJECT_ROOT/scripts/pm2/run-chain.sh"
+    ["ipfs"]="bash $PROJECT_ROOT/scripts/pm2/run-ipfs.sh"
+    ["ipfs-worker"]="bash $PROJECT_ROOT/scripts/pm2/run-ipfs-worker.sh"
+    ["blockchain-explorer"]="bash $PROJECT_ROOT/scripts/pm2/run-explorer.sh"
     ["ngrok"]="ngrok start --all --config /home/com/.config/ngrok/ngrok.yml"
 )
 
@@ -92,37 +168,25 @@ start_service() {
     case $service_name in
         "chain")
             # Check if blockchain binary exists
-            if [[ ! -f "$PROJECT_ROOT/target/release/solochain-template-node" ]]; then
-                print_status $RED "❌ Blockchain binary not found. Please build the project first:"
-                print_status $RED "   cd $PROJECT_ROOT && cargo build --release"
-                return 1
+            if [[ ! -f "$PROJECT_ROOT/target/release/mod-net-node" ]]; then
+                print_status $YELLOW "🔧 Blockchain binary not found. Attempting to build (release) via Nix dev shell if available..."
+                if run_in_nix bash -c "cd '$PROJECT_ROOT' && cargo build --release"; then
+                    print_status $GREEN "✅ Build completed. Proceeding to start node."
+                else
+                    print_status $RED "❌ Build failed or Nix unavailable. Please build manually:"
+                    print_status $BLUE "   cd $PROJECT_ROOT && cargo build --release"
+                    return 1
+                fi
             fi
             ;;
         "ipfs")
-            # Check if IPFS is initialized
-            if ! ipfs id >/dev/null 2>&1; then
-                print_status $YELLOW "🔧 Initializing IPFS..."
-                ipfs init
-                # Configure IPFS for external access
-                ipfs config Addresses.API /ip4/0.0.0.0/tcp/5001
-                ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
-                ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-                ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "POST"]'
-            fi
+            # Always delegate to the wrapper to handle Nix env, local repo, graceful shutdown, and repo.lock waits
+            command="bash $PROJECT_ROOT/scripts/pm2/run-ipfs.sh"
             ;;
         "ipfs-worker")
-            # Check if commune-ipfs directory exists and dependencies are installed
-            if [[ ! -d "$COMMUNE_IPFS_DIR" ]]; then
-                print_status $RED "❌ commune-ipfs directory not found at $COMMUNE_IPFS_DIR"
-                return 1
-            fi
-
-            # Install dependencies if needed
-            if [[ ! -d "$COMMUNE_IPFS_DIR/.venv" ]]; then
-                print_status $YELLOW "🔧 Installing IPFS worker dependencies..."
-                cd "$COMMUNE_IPFS_DIR"
-                uv sync
-            fi
+            # Export selected envs then delegate to the wrapper which handles Nix env and app selection
+            export_ipfs_env_from_project_env
+            command="bash $PROJECT_ROOT/scripts/pm2/run-ipfs-worker.sh"
             ;;
         "ngrok")
             # Check if ngrok config exists
@@ -130,11 +194,28 @@ start_service() {
                 print_status $RED "❌ Ngrok configuration not found at /home/com/.config/ngrok/ngrok.yml"
                 return 1
             fi
+            command="ngrok start --all"
+            ;;
+        "blockchain-explorer")
+            # Serve the web UI via python http.server, preferring Nix if available
+            if has_nix && ! in_nix_shell; then
+                command="cd $PROJECT_ROOT/webui && bash -lc \"env NIX_CONFIG='experimental-features = nix-command flakes' nix develop '$PROJECT_ROOT/env-setup' -c python3 -m http.server 8081\""
+            else
+                command="cd $PROJECT_ROOT/webui && python3 -m http.server 8081"
+            fi
             ;;
     esac
 
     # Start the service
-    if pm2 start "$command" --name "$service_name" >/dev/null 2>&1; then
+    # If command is a wrapper invocation like: bash /path/to/run-*.sh, ask PM2 to run the script directly
+    if [[ "$command" =~ ^bash[[:space:]]+(.+\.sh)[[:space:]]*$ ]]; then
+        script_path="${BASH_REMATCH[1]}"
+        start_cmd=(pm2 start "$script_path" --name "$service_name" --interpreter bash)
+    else
+        start_cmd=(pm2 start "$command" --name "$service_name")
+    fi
+
+    if "${start_cmd[@]}" >/dev/null 2>&1; then
         print_status $GREEN "✅ Service '$service_name' started successfully"
 
         # Wait a moment for service to initialize
@@ -237,7 +318,8 @@ start_all() {
     echo
 
     # Start services in order (dependencies first)
-    local services_order=("ipfs" "chain" "ipfs-worker" "ngrok")
+    # Include blockchain-explorer so it's started automatically
+    local services_order=("ipfs" "chain" "ipfs-worker" "blockchain-explorer" "ngrok")
     local failed_services=()
 
     for service in "${services_order[@]}"; do
@@ -266,7 +348,7 @@ stop_all() {
     echo
 
     # Stop services in reverse order
-    local services_order=("ngrok" "ipfs-worker" "chain" "ipfs")
+    local services_order=("ngrok" "blockchain-explorer" "ipfs-worker" "chain" "ipfs")
 
     for service in "${services_order[@]}"; do
         stop_service "$service"

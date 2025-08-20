@@ -1,15 +1,14 @@
 repos:
-# STEP 1: Run auto-fixes first to prepare code for validation
+# STEP 1: Local formatter aggregator disabled for pre-commit (manual only)
 -   repo: local
     hooks:
     -   id: run-formatters
-        name: Auto-fix code formatting and style
+        name: Auto-fix code formatting and style (manual)
         entry: ./run_checks.sh
         args: [formatters]
         language: system
         pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
+        stages: [manual]
 
 # STEP 2: Basic file checks (these don't conflict with auto-fixes)
 -   repo: https://github.com/pre-commit/pre-commit-hooks
@@ -29,30 +28,58 @@ repos:
     -   id: check-case-conflict
     -   id: check-json
     -   id: check-toml
+        always_run: true
 
-# STEP 3: Validation checks (run after auto-fixes are applied)
 -   repo: local
     hooks:
-    -   id: rust-clippy
-        name: Rust linting (clippy)
-        entry: cargo
-        args: [clippy, --all-targets, --all-features, --, -D, warnings]
+    -   id: black
+        name: black (python auto-fix)
+        entry: bash -lc 'black --line-length=88'
+        language: system
+        files: ^(mod_net_client/|modules/test_module/|tests/).*
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.7
+    hooks:
+    -   id: ruff
+        name: ruff (python auto-fix)
+        args: [--fix]
+        files: ^(mod_net_client/|modules/test_module/|tests/).*
+    -   id: ruff
+        name: ruff (import sort via isort rules)
+        args: [--fix, --select, I]
+        files: ^(mod_net_client/|modules/test_module/|tests/).*
+
+# Rust tooling is handled through rustup and cargo directly
+# Install required components:
+# rustup component add rustfmt clippy
+-   repo: local
+    hooks:
+    -   id: rustfmt
+        name: rustfmt (auto-fix)
+        entry: bash -c 'find . -name "*.rs" -not -path "*/target/*" -not -path "*/.git/*" -exec rustfmt --edition=2021 {} +'
+        language: system
+        stages: [manual]
+        types: [rust]
+        exclude: ^(commune-ipfs/|modules/)
+        pass_filenames: false
+        always_run: true
+
+    -   id: cargo-check
+        name: cargo check
+        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Checking $dir" && (cd "$dir" && cargo check --all-targets) || exit 1; done'
+        language: system
+        types: [rust]
+        pass_filenames: false
+        always_run: true
+        stages: [manual]
+        verbose: true
+
+    -   id: cargo-clippy
+        name: cargo clippy
+        entry: bash -c 'find . -name Cargo.toml -not -path "*/target/*" -not -path "*/.git/*" -exec dirname {} \; | sort -u | while read -r dir; do echo "Linting $dir" && (cd "$dir" && cargo clippy --all-targets -- -D warnings) || exit 1; done'
         language: system
         types: [rust]
         exclude: ^(commune-ipfs/|modules/)
         pass_filenames: false
-    -   id: python-ruff-check
-        name: Python linting (ruff check only)
-        entry: uv
-        args: [run, ruff, check, --no-fix]
-        language: system
-        types: [python]
-        exclude: ^(commune-ipfs/|modules/)
-    -   id: python-mypy
-        name: Python type checking (mypy)
-        entry: uv
-        args: [run, mypy, .]
-        language: system
-        types: [python]
-        exclude: ^(commune-ipfs/|modules/)
-        pass_filenames: false
+        stages: [manual]

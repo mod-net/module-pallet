@@ -1,16 +1,12 @@
-#[cfg(all(feature = "std", feature = "metadata-hash"))]
 fn main() {
-    substrate_wasm_builder::WasmBuilder::init_with_defaults()
-        .enable_metadata_hash("UNIT", 12)
-        .build();
-}
+    // Build scripts do not receive crate features via `cfg(feature = ...)`.
+    // Cargo exposes enabled features as `CARGO_FEATURE_*` env vars.
+    let std_enabled = std::env::var("CARGO_FEATURE_STD").is_ok();
+    if !std_enabled {
+        // No native build; skip generating the embedded wasm.
+        return;
+    }
 
-#[cfg(all(feature = "std", not(feature = "metadata-hash")))]
-fn main() {
-    substrate_wasm_builder::WasmBuilder::build_using_defaults();
+    let builder = substrate_wasm_builder::WasmBuilder::init_with_defaults();
+    builder.build();
 }
-
-/// The wasm builder is deactivated when compiling
-/// this crate for wasm to speed up the compilation.
-#[cfg(not(feature = "std"))]
-fn main() {}

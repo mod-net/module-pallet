@@ -215,7 +215,7 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ### Getting Help
 
-- Join our [Discord server](https://discord.gg/modnet)
+- Join our [Discord server](https://discord.gg/mod-net)
 - Check the [FAQ](./docs/FAQ.md)
 - Search existing issues
 

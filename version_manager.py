@@ -1,24 +1,22 @@
 #!/usr/bin/env python3
 """
 Independent Semantic Versioning CLI System
+==========================================
 
-A reusable Python CLI tool for managing semantic versioning (major, minor, patch),
-changelog updates, git tagging, and interactive version management.
-
-Features:
-- Semantic version bumping (major.minor.patch)
-- Automatic changelog generation and updates
-- Git tag creation with optional messages
-- Interactive mode with enhanced help and menu display
-- Modern Python typing with strict type checking
-- Support for both automated and manual workflows
+A reusable versioning system that provides:
+- Semantic versioning (major.minor.patch)
+- Changelog management
+- Enhanced help menus
+- Interactive and command-line modes
+- Git integration for tagging
 
 Usage:
-    python version_manager.py --help
-    python version_manager.py --interactive
-    python version_manager.py bump major --changelog "Breaking changes"
-    python version_manager.py bump minor --changelog "New features"
-    python version_manager.py bump patch --changelog "Bug fixes"
+    python version_manager.py [command] [options]
+    python version_manager.py bump major "Breaking changes"
+    python version_manager.py bump minor "New feature"
+    python version_manager.py bump patch "Bug fix"
+    python version_manager.py current
+    python version_manager.py help
 """
 
 import argparse
@@ -37,75 +35,108 @@ class Colors:
     GREEN = "\033[0;32m"
     YELLOW = "\033[1;33m"
     BLUE = "\033[0;34m"
-    MAGENTA = "\033[0;35m"
+    PURPLE = "\033[0;35m"
     CYAN = "\033[0;36m"
     WHITE = "\033[1;37m"
     BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-    RESET = "\033[0m"
+    NC = "\033[0m"  # No Color
 
 
 class VersionManager:
-    """Manages semantic versioning, changelog updates, and git tagging."""
+    """Manages semantic versioning for a project."""
 
     def __init__(self, project_root: str | None = None):
-        """Initialize the version manager with optional project root path."""
+        """Initialize the version manager.
+        Args:
+            project_root: Root directory of the project. Defaults to current directory.
+        """
         self.project_root = Path(project_root or os.getcwd())
         self.version_file = self.project_root / "VERSION"
         self.changelog_file = self.project_root / "CHANGELOG.md"
         self.pyproject_file = self.project_root / "pyproject.toml"
 
+    def _print_colored(self, message: str, color: str = Colors.NC):
+        """Print a colored message to the terminal."""
+        print(f"{color}{message}{Colors.NC}")
+
+    def _print_header(self, message: str):
+        """Print a header message."""
+        self._print_colored(f"\n=== {message} ===", Colors.BLUE)
+
+    def _print_success(self, message: str):
+        """Print a success message."""
+        self._print_colored(f"✓ {message}", Colors.GREEN)
+
+    def _print_error(self, message: str):
+        """Print an error message."""
+        self._print_colored(f"✗ {message}", Colors.RED)
+
+    def _print_warning(self, message: str):
+        """Print a warning message."""
+        self._print_colored(f"⚠ {message}", Colors.YELLOW)
+
+    def _print_info(self, message: str):
+        """Print an info message."""
+        self._print_colored(f"ℹ {message}", Colors.CYAN)
+
     def get_current_version(self) -> tuple[int, int, int]:
-        """Get the current version from VERSION file."""
+        """Get the current version from VERSION file.
+        Returns:
+            Tuple of (major, minor, patch) version numbers.
+        """
         if not self.version_file.exists():
-            print(
-                f"{Colors.YELLOW}VERSION file not found. Creating with version 0.1.0{Colors.RESET}"
-            )
-            self.version_file.write_text("0.1.0\n")
+            return (0, 1, 0)  # Default initial version
+
+        try:
+            version_str = self.version_file.read_text().strip()
+            match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", version_str)
+            if match:
+                return tuple(map(int, match.groups()))  # type: ignore[return-value]
+            else:
+                self._print_warning(
+                    f"Invalid version format in {self.version_file}: {version_str}"
+                )
+                return (0, 1, 0)
+        except Exception as e:
+            self._print_error(f"Error reading version file: {e}")
             return (0, 1, 0)
 
-        version_content = self.version_file.read_text().strip()
-        match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", version_content)
-        if not match:
-            raise ValueError(
-                f"Invalid version format in VERSION file: {version_content}"
-            )
+    def set_version(self, major: int, minor: int, patch: int):
+        """Set the version in VERSION file and pyproject.toml if it exists.
+        Args:
+            major: Major version number
+            minor: Minor version number
+            patch: Patch version number
+        """
+        version_str = f"{major}.{minor}.{patch}"
 
-        return tuple(map(int, match.groups()))  # type: ignore[return-value]
+        # Write to VERSION file
+        self.version_file.write_text(version_str + "\n")
+        self._print_success(f"Updated VERSION file to {version_str}")
 
-    def update_version_file(self, major: int, minor: int, patch: int) -> None:
-        """Update the VERSION file with new version."""
-        version_string = f"{major}.{minor}.{patch}"
-        self.version_file.write_text(f"{version_string}\n")
-        print(f"{Colors.GREEN}✓ Updated VERSION file to {version_string}{Colors.RESET}")
-
-    def update_pyproject_toml(self, major: int, minor: int, patch: int) -> None:
-        """Update version in pyproject.toml if it exists."""
-        if not self.pyproject_file.exists():
-            return
-
-        content = self.pyproject_file.read_text()
-        version_string = f"{major}.{minor}.{patch}"
-
-        # Update version in [project] section only - more specific regex
-        # This matches the project version but not tool-specific versions like ruff's target-version
-        updated_content = re.sub(
-            r'(\[project\].*?version\s*=\s*["\'])([^"\']+)(["\'])',
-            f"\\g<1>{version_string}\\g<3>",
-            content,
-            flags=re.DOTALL,
-        )
-
-        if updated_content != content:
-            self.pyproject_file.write_text(updated_content)
-            print(
-                f"{Colors.GREEN}✓ Updated pyproject.toml version to {version_string}{Colors.RESET}"
-            )
+        # Update pyproject.toml if it exists
+        if self.pyproject_file.exists():
+            try:
+                content = self.pyproject_file.read_text()
+                # Update version in pyproject.toml
+                updated_content = re.sub(
+                    r'version\s*=\s*"[^"]*"', f'version = "{version_str}"', content
+                )
+                self.pyproject_file.write_text(updated_content)
+                self._print_success(f"Updated pyproject.toml to {version_str}")
+            except Exception as e:
+                self._print_warning(f"Could not update pyproject.toml: {e}")
 
     def bump_version(
         self, bump_type: str, changelog_entry: str | None = None
     ) -> tuple[int, int, int]:
-        """Bump version based on type (major, minor, patch)."""
+        """Bump the version according to semantic versioning rules.
+        Args:
+            bump_type: Type of bump ('major', 'minor', 'patch')
+            changelog_entry: Optional changelog entry for this version
+        Returns:
+            New version tuple (major, minor, patch)
+        """
         major, minor, patch = self.get_current_version()
 
         if bump_type == "major":
@@ -122,354 +153,354 @@ class VersionManager:
                 f"Invalid bump type: {bump_type}. Must be 'major', 'minor', or 'patch'"
             )
 
-        self.update_version_file(major, minor, patch)
-        self.update_pyproject_toml(major, minor, patch)
+        self.set_version(major, minor, patch)
 
         if changelog_entry:
             self.update_changelog(major, minor, patch, changelog_entry)
 
         return (major, minor, patch)
 
-    def update_changelog(self, major: int, minor: int, patch: int, entry: str) -> None:
-        """Update CHANGELOG.md with new version entry."""
-        version_string = f"{major}.{minor}.{patch}"
-        date_string = datetime.now().strftime("%Y-%m-%d")
+    def update_changelog(self, major: int, minor: int, patch: int, entry: str):
+        """Update the CHANGELOG.md file with a new entry.
+        Args:
+            major: Major version number
+            minor: Minor version number
+            patch: Patch version number
+            entry: Changelog entry description
+        """
+        version_str = f"{major}.{minor}.{patch}"
+        date_str = datetime.now().strftime("%Y-%m-%d")
 
-        new_entry = f"""## [{version_string}] - {date_string}
+        new_entry = f"""
+## [{version_str}] - {date_str}
 
-{entry}
-
+### Changed
+- {entry}
 """
 
-        if self.changelog_file.exists():
-            existing_content = self.changelog_file.read_text()
-            # Insert new entry after the first line (usually "# Changelog")
-            lines = existing_content.split("\n")
-            if lines and lines[0].startswith("# "):
-                # Insert after header
-                updated_content = "\n".join([lines[0], "", new_entry] + lines[1:])
-            else:
-                updated_content = new_entry + existing_content
-        else:
-            updated_content = f"""# Changelog
+        if not self.changelog_file.exists():
+            # Create new changelog
+            changelog_content = f"""# Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-{new_entry}"""
+## [Unreleased]
+{new_entry}
+"""
+        else:
+            # Insert new entry after "## [Unreleased]" section
+            content = self.changelog_file.read_text()
 
-        self.changelog_file.write_text(updated_content)
-        print(
-            f"{Colors.GREEN}✓ Updated CHANGELOG.md with version {version_string}{Colors.RESET}"
-        )
+            # Find the position to insert the new entry
+            if "## [Unreleased]" in content:
+                # Insert after the Unreleased section
+                parts = content.split("## [Unreleased]", 1)
+                if len(parts) == 2:
+                    # Find the next ## section or end of file
+                    after_unreleased = parts[1]
+                    next_section_match = re.search(r"\n## \[", after_unreleased)
+                    if next_section_match:
+                        # Insert before the next section
+                        insert_pos = next_section_match.start()
+                        changelog_content = (
+                            parts[0]
+                            + "## [Unreleased]"
+                            + after_unreleased[:insert_pos]
+                            + new_entry
+                            + after_unreleased[insert_pos:]
+                        )
+                    else:
+                        # Insert at the end
+                        changelog_content = (
+                            parts[0] + "## [Unreleased]" + after_unreleased + new_entry
+                        )
+                else:
+                    changelog_content = content + new_entry
+            else:
+                # No unreleased section, add at the beginning
+                lines = content.split("\n")
+                # Find a good place to insert (after the header)
+                insert_line = 0
+                for i, line in enumerate(lines):
+                    if line.startswith("##") and "[" in line:
+                        insert_line = i
+                        break
+
+                if insert_line > 0:
+                    lines.insert(insert_line, new_entry.strip())
+                    changelog_content = "\n".join(lines)
+                else:
+                    changelog_content = content + new_entry
+
+        self.changelog_file.write_text(changelog_content)
+        self._print_success(f"Updated CHANGELOG.md with entry for v{version_str}")
 
     def create_git_tag(
         self, major: int, minor: int, patch: int, message: str | None = None
-    ) -> None:
-        """Create a git tag for the version."""
-        version_string = f"v{major}.{minor}.{patch}"
+    ):
+        """Create a git tag for the current version.
+        Args:
+            major: Major version number
+            minor: Minor version number
+            patch: Patch version number
+            message: Optional tag message
+        """
+        version_str = f"{major}.{minor}.{patch}"
+        tag_name = f"v{version_str}"
 
         try:
+            # Check if we're in a git repository
+            subprocess.run(
+                ["git", "rev-parse", "--git-dir"],
+                check=True,
+                capture_output=True,
+                cwd=self.project_root,
+            )
+
+            # Create the tag
+            cmd = ["git", "tag", "-a", tag_name]
             if message:
-                subprocess.run(
-                    ["git", "tag", "-a", version_string, "-m", message],
-                    check=True,
-                    cwd=self.project_root,
-                )
+                cmd.extend(["-m", message])
             else:
-                subprocess.run(
-                    ["git", "tag", version_string], check=True, cwd=self.project_root
-                )
-            print(f"{Colors.GREEN}✓ Created git tag {version_string}{Colors.RESET}")
-        except subprocess.CalledProcessError as e:
-            print(f"{Colors.RED}✗ Failed to create git tag: {e}{Colors.RESET}")
+                cmd.extend(["-m", f"Release version {version_str}"])
 
-    def display_current_version(self) -> None:
+            subprocess.run(cmd, check=True, cwd=self.project_root)
+            self._print_success(f"Created git tag: {tag_name}")
+
+        except subprocess.CalledProcessError:
+            self._print_warning("Not in a git repository or git command failed")
+        except FileNotFoundError:
+            self._print_warning("Git not found in PATH")
+
+    def show_current_version(self):
         """Display the current version information."""
-        try:
-            major, minor, patch = self.get_current_version()
-            print(f"\n{Colors.BOLD}Current Version Information:{Colors.RESET}")
-            print(f"  Version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}")
-            print(f"  Project: {Colors.CYAN}{self.project_root.name}{Colors.RESET}")
-            print(f"  Path: {Colors.BLUE}{self.project_root}{Colors.RESET}")
-        except Exception as e:
-            print(f"{Colors.RED}✗ Error reading version: {e}{Colors.RESET}")
+        major, minor, patch = self.get_current_version()
+        version_str = f"{major}.{minor}.{patch}"
 
-    def interactive_mode(self) -> None:
-        """Run interactive version management mode."""
+        self._print_header("Current Version Information")
+        self._print_colored(f"Version: {version_str}", Colors.WHITE)
+        self._print_info(f"Version file: {self.version_file}")
+
+        if self.changelog_file.exists():
+            self._print_info(f"Changelog: {self.changelog_file}")
+        else:
+            self._print_warning("No CHANGELOG.md found")
+
+    def show_help(self):
+        """Display enhanced help menu with all available options."""
+        self._print_header("Version Manager - Enhanced Help")
+
+        print(
+            f"""
+{Colors.WHITE}USAGE:{Colors.NC}
+    python version_manager.py [COMMAND] [OPTIONS]
+
+{Colors.WHITE}COMMANDS:{Colors.NC}
+    {Colors.GREEN}current{Colors.NC}                     Show current version information
+    {Colors.GREEN}bump <type> [message]{Colors.NC}       Bump version (major/minor/patch)
+    {Colors.GREEN}set <version>{Colors.NC}               Set specific version (e.g., 1.2.3)
+    {Colors.GREEN}tag [message]{Colors.NC}               Create git tag for current version
+    {Colors.GREEN}help{Colors.NC}                        Show this help menu
+
+{Colors.WHITE}BUMP TYPES:{Colors.NC}
+    {Colors.YELLOW}major{Colors.NC}    - Breaking changes (1.0.0 → 2.0.0)
+    {Colors.YELLOW}minor{Colors.NC}    - New features, backward compatible (1.0.0 → 1.1.0)
+    {Colors.YELLOW}patch{Colors.NC}    - Bug fixes, backward compatible (1.0.0 → 1.0.1)
+
+{Colors.WHITE}EXAMPLES:{Colors.NC}
+    {Colors.CYAN}python version_manager.py current{Colors.NC}
+    {Colors.CYAN}python version_manager.py bump major "Breaking API changes"{Colors.NC}
+    {Colors.CYAN}python version_manager.py bump minor "Added new feature"{Colors.NC}
+    {Colors.CYAN}python version_manager.py bump patch "Fixed critical bug"{Colors.NC}
+    {Colors.CYAN}python version_manager.py set 1.0.0{Colors.NC}
+    {Colors.CYAN}python version_manager.py tag "Release with new features"{Colors.NC}
+
+{Colors.WHITE}FILES MANAGED:{Colors.NC}
+    {Colors.PURPLE}VERSION{Colors.NC}        - Main version file
+    {Colors.PURPLE}CHANGELOG.md{Colors.NC}   - Changelog with version history
+    {Colors.PURPLE}pyproject.toml{Colors.NC} - Python project version (if exists)
+
+{Colors.WHITE}INTERACTIVE MODE:{Colors.NC}
+    Run without arguments to enter interactive mode with guided prompts.
+        """
+        )
+
+    def interactive_mode(self):
+        """Run the version manager in interactive mode."""
+        self._print_header("Version Manager - Interactive Mode")
+        self.show_current_version()
+
+        print(f"\n{Colors.WHITE}Available actions:{Colors.NC}")
+        print(f"  {Colors.GREEN}1{Colors.NC}) Bump major version")
+        print(f"  {Colors.GREEN}2{Colors.NC}) Bump minor version")
+        print(f"  {Colors.GREEN}3{Colors.NC}) Bump patch version")
+        print(f"  {Colors.GREEN}4{Colors.NC}) Set specific version")
+        print(f"  {Colors.GREEN}5{Colors.NC}) Create git tag")
+        print(f"  {Colors.GREEN}6{Colors.NC}) Show current version")
+        print(f"  {Colors.GREEN}0{Colors.NC}) Exit")
+
         while True:
-            self.display_interactive_menu()
-            choice = input(
-                f"\n{Colors.BOLD}Select an option (1-7): {Colors.RESET}"
-            ).strip()
+            try:
+                choice = input(
+                    f"\n{Colors.CYAN}Enter your choice (0-6): {Colors.NC}"
+                ).strip()
 
-            if choice == "1":
-                self.display_current_version()
-            elif choice == "2":
-                self._interactive_bump("major")
-            elif choice == "3":
-                self._interactive_bump("minor")
-            elif choice == "4":
-                self._interactive_bump("patch")
-            elif choice == "5":
-                self._interactive_changelog()
-            elif choice == "6":
-                self._interactive_git_tag()
-            elif choice == "7":
-                print(f"{Colors.GREEN}Goodbye!{Colors.RESET}")
+                if choice == "0":
+                    self._print_info("Goodbye!")
+                    break
+                elif choice == "1":
+                    self._handle_interactive_bump("major")
+                elif choice == "2":
+                    self._handle_interactive_bump("minor")
+                elif choice == "3":
+                    self._handle_interactive_bump("patch")
+                elif choice == "4":
+                    self._handle_interactive_set()
+                elif choice == "5":
+                    self._handle_interactive_tag()
+                elif choice == "6":
+                    self.show_current_version()
+                else:
+                    self._print_error(
+                        "Invalid choice. Please enter a number between 0-6."
+                    )
+                    self.show_help()
+
+            except KeyboardInterrupt:
+                self._print_info("\nExiting...")
                 break
-            else:
-                print(f"{Colors.RED}Invalid option. Please select 1-7.{Colors.RESET}")
+            except Exception as e:
+                self._print_error(f"An error occurred: {e}")
 
-            input(f"\n{Colors.YELLOW}Press Enter to continue...{Colors.RESET}")
-
-    def display_interactive_menu(self) -> None:
-        """Display the interactive menu."""
-        print(f"\n{Colors.BOLD}{'='*60}{Colors.RESET}")
-        print(
-            f"{Colors.BOLD}{Colors.CYAN}    Semantic Version Manager - Interactive Mode{Colors.RESET}"
-        )
-        print(f"{Colors.BOLD}{'='*60}{Colors.RESET}")
-
+    def _handle_interactive_bump(self, bump_type: str):
+        """Handle interactive version bump."""
+        message = input(
+            f"Enter changelog message for {bump_type} bump (optional): "
+        ).strip()
         try:
-            major, minor, patch = self.get_current_version()
-            print(
-                f"{Colors.WHITE}Current Version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}"
+            new_version = self.bump_version(bump_type, message if message else None)
+            self._print_success(
+                f"Bumped {bump_type} version to {'.'.join(map(str, new_version))}"
             )
-        except Exception:
-            print(f"{Colors.WHITE}Current Version: {Colors.RED}Unknown{Colors.RESET}")
-
-        print(
-            f"{Colors.WHITE}Project: {Colors.CYAN}{self.project_root.name}{Colors.RESET}"
-        )
-        print(f"{Colors.BOLD}{'='*60}{Colors.RESET}")
-
-        print(f"\n{Colors.BOLD}Available Options:{Colors.RESET}")
-        print(f"  {Colors.GREEN}1.{Colors.RESET} Display current version information")
-        print(
-            f"  {Colors.GREEN}2.{Colors.RESET} Bump {Colors.RED}MAJOR{Colors.RESET} version (breaking changes)"
-        )
-        print(
-            f"  {Colors.GREEN}3.{Colors.RESET} Bump {Colors.YELLOW}MINOR{Colors.RESET} version (new features)"
-        )
-        print(
-            f"  {Colors.GREEN}4.{Colors.RESET} Bump {Colors.BLUE}PATCH{Colors.RESET} version (bug fixes)"
-        )
-        print(f"  {Colors.GREEN}5.{Colors.RESET} Update changelog manually")
-        print(f"  {Colors.GREEN}6.{Colors.RESET} Create git tag")
-        print(f"  {Colors.GREEN}7.{Colors.RESET} Exit")
-
-    def _interactive_bump(self, bump_type: str) -> None:
-        """Handle interactive version bumping."""
-        try:
-            current = self.get_current_version()
-            print(
-                f"\n{Colors.BOLD}Current version: {Colors.GREEN}{'.'.join(map(str, current))}{Colors.RESET}"
-            )
-
-            # Preview what the new version will be
-            major, minor, patch = current
-            if bump_type == "major":
-                major += 1
-                minor = 0
-                patch = 0
-            elif bump_type == "minor":
-                minor += 1
-                patch = 0
-            elif bump_type == "patch":
-                patch += 1
-
-            new_version = f"{major}.{minor}.{patch}"
-            print(
-                f"{Colors.BOLD}New version will be: {Colors.CYAN}{new_version}{Colors.RESET}"
-            )
-
-            # Ask for changelog entry
-            changelog_entry = input(
-                f"\n{Colors.YELLOW}Enter changelog entry (optional): {Colors.RESET}"
-            ).strip()
-
-            # Confirm the action
-            confirm = (
-                input(
-                    f"\n{Colors.BOLD}Proceed with {bump_type.upper()} version bump? (y/N): {Colors.RESET}"
-                )
-                .strip()
-                .lower()
-            )
-
-            if confirm in ["y", "yes"]:
-                new_version_tuple = self.bump_version(
-                    bump_type, changelog_entry if changelog_entry else None
-                )
-                print(
-                    f"\n{Colors.GREEN}✓ Successfully bumped to version {'.'.join(map(str, new_version_tuple))}{Colors.RESET}"
-                )
-
-                # Ask about git tag
-                tag_confirm = (
-                    input(
-                        f"{Colors.YELLOW}Create git tag for this version? (y/N): {Colors.RESET}"
-                    )
-                    .strip()
-                    .lower()
-                )
-                if tag_confirm in ["y", "yes"]:
-                    tag_message = input(
-                        f"{Colors.YELLOW}Enter tag message (optional): {Colors.RESET}"
-                    ).strip()
-                    self.create_git_tag(
-                        *new_version_tuple, tag_message if tag_message else None
-                    )
-            else:
-                print(f"{Colors.YELLOW}Version bump cancelled.{Colors.RESET}")
-
         except Exception as e:
-            print(f"{Colors.RED}✗ Error during version bump: {e}{Colors.RESET}")
+            self._print_error(f"Failed to bump version: {e}")
 
-    def _interactive_changelog(self) -> None:
-        """Handle interactive changelog updates."""
+    def _handle_interactive_set(self):
+        """Handle interactive version setting."""
+        version_input = input("Enter version (e.g., 1.2.3): ").strip()
         try:
-            major, minor, patch = self.get_current_version()
-            print(
-                f"\n{Colors.BOLD}Current version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}"
-            )
-
-            entry = input(
-                f"{Colors.YELLOW}Enter changelog entry: {Colors.RESET}"
-            ).strip()
-            if entry:
-                self.update_changelog(major, minor, patch, entry)
-                print(f"{Colors.GREEN}✓ Changelog updated successfully{Colors.RESET}")
+            match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", version_input)
+            if match:
+                major, minor, patch = map(int, match.groups())
+                self.set_version(major, minor, patch)
+                self._print_success(f"Set version to {version_input}")
             else:
-                print(f"{Colors.YELLOW}No changelog entry provided.{Colors.RESET}")
-
+                self._print_error(
+                    "Invalid version format. Use major.minor.patch (e.g., 1.2.3)"
+                )
         except Exception as e:
-            print(f"{Colors.RED}✗ Error updating changelog: {e}{Colors.RESET}")
+            self._print_error(f"Failed to set version: {e}")
 
-    def _interactive_git_tag(self) -> None:
+    def _handle_interactive_tag(self):
         """Handle interactive git tag creation."""
+        message = input("Enter tag message (optional): ").strip()
         try:
             major, minor, patch = self.get_current_version()
-            version_string = f"v{major}.{minor}.{patch}"
-
-            print(
-                f"\n{Colors.BOLD}Current version: {Colors.GREEN}{major}.{minor}.{patch}{Colors.RESET}"
-            )
-            print(
-                f"{Colors.BOLD}Tag will be: {Colors.CYAN}{version_string}{Colors.RESET}"
-            )
-
-            message = input(
-                f"{Colors.YELLOW}Enter tag message (optional): {Colors.RESET}"
-            ).strip()
-
-            confirm = (
-                input(
-                    f"{Colors.BOLD}Create git tag {version_string}? (y/N): {Colors.RESET}"
-                )
-                .strip()
-                .lower()
-            )
-
-            if confirm in ["y", "yes"]:
-                self.create_git_tag(major, minor, patch, message if message else None)
-            else:
-                print(f"{Colors.YELLOW}Git tag creation cancelled.{Colors.RESET}")
-
+            self.create_git_tag(major, minor, patch, message if message else None)
         except Exception as e:
-            print(f"{Colors.RED}✗ Error creating git tag: {e}{Colors.RESET}")
+            self._print_error(f"Failed to create git tag: {e}")
 
 
-def main() -> None:
+def main():
     """Main entry point for the version manager CLI."""
     parser = argparse.ArgumentParser(
         description="Independent Semantic Versioning CLI System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --interactive                    # Run in interactive mode
-  %(prog)s bump major --changelog "Breaking changes"
-  %(prog)s bump minor --changelog "New features" --tag
-  %(prog)s bump patch --changelog "Bug fixes" --tag --tag-message "Hotfix release"
-  %(prog)s current                          # Display current version
-  %(prog)s changelog "Manual changelog entry"
-  %(prog)s tag --message "Release version"
-
-Version Types:
-  major    # Breaking changes (1.0.0 -> 2.0.0)
-  minor    # New features (1.0.0 -> 1.1.0)
-  patch    # Bug fixes (1.0.0 -> 1.0.1)
+  python version_manager.py current
+  python version_manager.py bump major "Breaking changes"
+  python version_manager.py bump minor "New feature"
+  python version_manager.py bump patch "Bug fix"
+  python version_manager.py set 1.0.0
+  python version_manager.py tag "Release message"
         """,
     )
 
     parser.add_argument(
-        "--project-root",
-        type=str,
-        help="Project root directory (default: current directory)",
+        "command",
+        nargs="?",
+        choices=["current", "bump", "set", "tag", "help"],
+        help="Command to execute",
     )
-
     parser.add_argument(
-        "--interactive",
-        action="store_true",
-        help="Run in interactive mode with enhanced menu",
+        "type_or_version",
+        nargs="?",
+        help="Bump type (major/minor/patch) or version number",
     )
-
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Bump command
-    bump_parser = subparsers.add_parser("bump", help="Bump version")
-    bump_parser.add_argument(
-        "type", choices=["major", "minor", "patch"], help="Version bump type"
+    parser.add_argument("message", nargs="?", help="Changelog entry or tag message")
+    parser.add_argument(
+        "--project-root", help="Project root directory (default: current directory)"
     )
-    bump_parser.add_argument(
-        "--changelog", type=str, help="Changelog entry for this version"
-    )
-    bump_parser.add_argument(
-        "--tag", action="store_true", help="Create git tag after version bump"
-    )
-    bump_parser.add_argument("--tag-message", type=str, help="Message for git tag")
-
-    # Current command
-    subparsers.add_parser("current", help="Display current version")
-
-    # Changelog command
-    changelog_parser = subparsers.add_parser("changelog", help="Update changelog")
-    changelog_parser.add_argument("entry", type=str, help="Changelog entry")
-
-    # Tag command
-    tag_parser = subparsers.add_parser("tag", help="Create git tag for current version")
-    tag_parser.add_argument("--message", type=str, help="Tag message")
 
     args = parser.parse_args()
 
-    try:
-        version_manager = VersionManager(args.project_root)
+    # Initialize version manager
+    vm = VersionManager(args.project_root)
 
-        if args.interactive:
-            version_manager.interactive_mode()
-        elif args.command == "bump":
-            new_version = version_manager.bump_version(args.type, args.changelog)
-            if args.tag:
-                version_manager.create_git_tag(*new_version, args.tag_message)
+    try:
+        if not args.command:
+            # No command provided, enter interactive mode
+            vm.interactive_mode()
         elif args.command == "current":
-            version_manager.display_current_version()
-        elif args.command == "changelog":
-            major, minor, patch = version_manager.get_current_version()
-            version_manager.update_changelog(major, minor, patch, args.entry)
+            vm.show_current_version()
+        elif args.command == "bump":
+            if not args.type_or_version:
+                vm._print_error("Bump type required (major/minor/patch)")
+                vm.show_help()
+                sys.exit(1)
+
+            if args.type_or_version not in ["major", "minor", "patch"]:
+                vm._print_error(f"Invalid bump type: {args.type_or_version}")
+                vm.show_help()
+                sys.exit(1)
+
+            new_version = vm.bump_version(args.type_or_version, args.message)
+            vm._print_success(
+                f"Bumped {args.type_or_version} version to {'.'.join(map(str, new_version))}"
+            )
+
+        elif args.command == "set":
+            if not args.type_or_version:
+                vm._print_error("Version number required (e.g., 1.2.3)")
+                vm.show_help()
+                sys.exit(1)
+
+            match = re.match(r"^(\d+)\.(\d+)\.(\d+)$", args.type_or_version)
+            if not match:
+                vm._print_error(
+                    "Invalid version format. Use major.minor.patch (e.g., 1.2.3)"
+                )
+                sys.exit(1)
+
+            major, minor, patch = map(int, match.groups())
+            vm.set_version(major, minor, patch)
+
         elif args.command == "tag":
-            major, minor, patch = version_manager.get_current_version()
-            version_manager.create_git_tag(major, minor, patch, args.message)
-        else:
-            parser.print_help()
+            major, minor, patch = vm.get_current_version()
+            vm.create_git_tag(major, minor, patch, args.type_or_version)
+
+        elif args.command == "help":
+            vm.show_help()
 
     except KeyboardInterrupt:
-        print(f"\n{Colors.YELLOW}Operation cancelled by user.{Colors.RESET}")
-        sys.exit(1)
+        vm._print_info("\nExiting...")
+        sys.exit(0)
     except Exception as e:
-        print(f"{Colors.RED}✗ Error: {e}{Colors.RESET}")
+        vm._print_error(f"An error occurred: {e}")
         sys.exit(1)
 
 

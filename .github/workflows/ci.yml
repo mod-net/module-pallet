@@ -22,28 +22,27 @@ jobs:
 
       - if: contains(matrix.os, 'ubuntu')
         uses: ./.github/actions/free-disk-space
-      - if: contains(matrix.os, 'ubuntu')
-        uses: ./.github/actions/ubuntu-dependencies
-      - if: contains(matrix.os, 'macos')
-        uses: ./.github/actions/macos-dependencies
+      # Faster, stable binary installer and cache on macOS
+      - name: Install Nix (macOS)
+        if: contains(matrix.os, 'macos')
+        uses: DeterminateSystems/nix-installer-action@v12
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+      - name: Enable magic Nix cache (macOS)
+        if: contains(matrix.os, 'macos')
+        uses: DeterminateSystems/magic-nix-cache-action@v7
+      # Keep existing installer on Ubuntu
+      - name: Install Nix (Ubuntu)
+        if: contains(matrix.os, 'ubuntu')
+        uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
-      - name: Build the template
-        run: cargo build
-        timeout-minutes: 90
-
-      - name: Run clippy
-        run: |
-          SKIP_WASM_BUILD=1 cargo clippy --all-targets --locked --workspace --quiet
-          SKIP_WASM_BUILD=1 cargo clippy --all-targets --all-features --locked --workspace --quiet
-        timeout-minutes: 30
-
-      - name: Run the tests
-        run: SKIP_WASM_BUILD=1 cargo test
-        timeout-minutes: 15
-
-      - name: Build the docs
-        run: SKIP_WASM_BUILD=1 cargo doc --workspace --no-deps
-        timeout-minutes: 15
+      - name: Run consolidated CI via Nix apps
+        run: nix run ./env-setup#ci
+        timeout-minutes: 120
 
   run-node:
     runs-on: ${{ matrix.os }}
@@ -59,14 +58,23 @@ jobs:
         uses: ./.github/actions/ubuntu-dependencies
       - if: contains(matrix.os, 'macos')
         uses: ./.github/actions/macos-dependencies
+      - name: Install Nix (macOS)
+        if: contains(matrix.os, 'macos')
+        uses: DeterminateSystems/nix-installer-action@v12
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+      - name: Enable magic Nix cache (macOS)
+        if: contains(matrix.os, 'macos')
+        uses: DeterminateSystems/magic-nix-cache-action@v7
 
       - name: Build the node individually in release mode
-        run: cargo build --package solochain-template-node --release
+        run: cargo build --package mod-net-node --release
         timeout-minutes: 90
 
       - name: Make sure the node is producing blocks
         run: |
-          ./target/release/solochain-template-node --dev 2>&1 | tee out.txt &
+          ./target/release/mod-net-node --dev 2>&1 | tee out.txt &
           until curl -s '127.0.0.1:9944'; do sleep 5; done
           until cat out.txt | grep -s "Imported #2"; do sleep 5; done
         shell: bash
@@ -79,6 +87,11 @@ jobs:
 
       - uses: ./.github/actions/free-disk-space
 
-      - name: Build the Dockerfile
-        run: docker build . -t polkadot-sdk-solochain-template
+      - name: Build blockchain node Docker image (blockchain-node stage)
+        run: |
+          docker build --target blockchain-node -t mod-net-node:ci .
+
+      - name: Smoke test node image
+        run: |
+          docker run --rm mod-net-node:ci --version
         timeout-minutes: 90

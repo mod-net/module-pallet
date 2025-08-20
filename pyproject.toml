@@ -8,7 +8,7 @@ authors = [
 ]
 dependencies = [
     "substrate-interface>=1.7.0",
-    "commune-ipfs @ git+https://github.com/Bakobiibizo/commune-ipfs.git",
+    "commune-ipfs @ git+https://github.com/mod-net/ipfs-service.git",
     "fastapi>=0.104.0",
     "uvicorn>=0.24.0",
     "pydantic>=2.4.0",
@@ -19,6 +19,7 @@ dependencies = [
     "pre-commit>=4.2.0",
     "ruff>=0.12.7",
     "mypy>=1.17.0",
+    "commune-ipfs>=0.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -40,6 +41,7 @@ dev = [
     "flake8>=7.3.0",
     "isort>=6.0.1",
     "mypy>=1.17.0",
+    "pre-commit>=4.2.0",
     "pylint>=3.3.7",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.24.0",
@@ -49,7 +51,7 @@ dev = [
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-include = '(test_hooks\.py)$'
+include = '\\.pyi?$'
 exclude = '''
 (
   /(
@@ -66,7 +68,7 @@ exclude = '''
     | target
     | commune-ipfs
     | scripts
-    | modules
+    | modules/(?!test_module(/|$)).*
   )/
 )
 '''
@@ -86,8 +88,7 @@ skip_glob = [
     "**/site-packages/*",
     "**/.venv/*",
     "**/venv/*",
-    "scripts/*",
-    "modules/*"
+    "scripts/*"
 ]
 skip_gitignore = true
 
@@ -104,10 +105,10 @@ exclude = [
     ".git",
     "__pycache__",
     "scripts",
-    "modules",
+    # Ignore all other modules/* except modules/test_module
+    "modules/(?!test_module(/|$)).*",
+    "commune-ipfs",
 ]
-
-[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -140,7 +141,7 @@ max-line-length = 88
 good-names = ["i", "j", "k", "ex", "Run", "_", "id", "db", "app"]
 
 [tool.mypy]
-python_version = "0.2.0"
+python_version = "3.11"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
 check_untyped_defs = true
@@ -162,10 +163,17 @@ exclude = [
     "__pycache__",
     "commune-ipfs",
     "scripts",
-    "modules",
+    "modules/text2video/",
+    "modules/text2speech/",
+    "modules/text_gen/examples/",
+    # Ignore all other modules/* except modules/test_module
+    "modules/(?!test_module(/|$)).*",
 ]
 
 [tool.uv.workspace]
 members = [
     "modules/test_module",
 ]
+
+[tool.uv.sources]
+commune-ipfs = { git = "https://github.com/mod-net/ipfs-service.git" }
